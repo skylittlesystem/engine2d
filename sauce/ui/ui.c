@@ -87,7 +87,7 @@ int ui_init(struct ui* ui, struct game* g)
 
 	assert (ui->gl_context); /* TODO: proper handling */
 
-	glViewport(0, 0, W, H);
+	//glViewport(0, 0, W, H);
 	r_init(&ui->R);
 
 	return 0;
