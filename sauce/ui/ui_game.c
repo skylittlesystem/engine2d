@@ -18,40 +18,12 @@
 
 #include "ui_game.h"
 #include "game/g_entity/g_player.h"
-#include "renderer/r_septagon.h"
-
-/*
- *
- *
- *
- *
- * teh temp
- *
- *
- *
- *
- *
- */
-
-#include <stdio.h>
-
-/*
- *
- *
- *
- *
- * end of teh temp
- *
- *
- *
- *
- *
- */
+#include "renderer/r_polygon.h"
 
 void ui_game_draw(struct ui_game* ui_g)
 {
 	static float red[4] =	{1, 0, 0, 1};
-//	static float green[4] =	{0, 1, 0, 1};
+	static float green[4] =	{0, 1, 0, 1};
 //	static float blue[4] =	{0, 0, 1, 1};
 
 	GLint T_loc;
@@ -81,10 +53,14 @@ void ui_game_draw(struct ui_game* ui_g)
 		{
 		case G_PLAYER:
 			glUniform4fv(color_loc, 1, red);
-			r_septagon(R);	
+			r_polygon(R, (struct r_polygon*) e->poly);
 			break;
 
 		case G_TERRAIN:
+			glUniform4fv(color_loc, 1, green);
+			r_polygon(R, (struct r_polygon*) e->poly);
+			break;
+
 		case G_DIRT:
 		case G_BRICKS:
 		default:

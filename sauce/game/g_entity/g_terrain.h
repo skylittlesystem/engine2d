@@ -20,8 +20,6 @@ struct g_terrain
 {
 #define G_TERRAIN_FIELDS \
 	G_ENTITY_FIELDS \
-	unsigned vertc;		/* vertex count */ \
-	float (*vertv)[2];	/* vertices */ \
 	
 	G_TERRAIN_FIELDS
 };

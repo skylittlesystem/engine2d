@@ -26,6 +26,7 @@ void g_entity_frame(struct g_entity* e, unsigned long dt)
 		g_player_frame((struct g_player*) e, dt);
 		break;
 
+	case G_TERRAIN:
 	case G_DIRT:
 	case G_BRICKS:
 		g_terrain_frame((struct g_terrain*) e, dt);

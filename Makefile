@@ -32,7 +32,7 @@ MISC_OBJ := \
 #
 RENDERER_OBJ := \
 	build/renderer/renderer.o \
-	build/renderer/r_septagon.o \
+	build/renderer/r_polygon.o \
 
 R_SHADERS := \
 	build/renderer/shaders/vshader.glsl.c \

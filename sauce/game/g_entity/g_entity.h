@@ -15,6 +15,7 @@
 #define HAS_G_ENTITY_H
 
 #include "../g_names.h"
+#include "../g_polygon.h"
 
 struct g_entity
 {
@@ -23,6 +24,7 @@ struct g_entity
 	unsigned id;		/* unique identifier assigned by warudo */ \
 	float T[4][4];		/* transform matrix */ \
 	float dT[4][4];		/* transform rate of change (with time) */ \
+	struct g_polygon* poly;	/* polygonal model */ \
 
 	G_ENTITY_FIELDS
 };
