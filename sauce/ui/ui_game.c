@@ -50,7 +50,12 @@
 
 void ui_game_draw(struct ui_game* ui_g)
 {
+	static float red[4] =	{1, 0, 0, 1};
+//	static float green[4] =	{0, 1, 0, 1};
+//	static float blue[4] =	{0, 0, 1, 1};
+
 	GLint T_loc;
+	GLint color_loc;
 
 	struct renderer* R;
 	struct game* g;
@@ -63,6 +68,7 @@ void ui_game_draw(struct ui_game* ui_g)
 
 	glUseProgram(R->program_id);
 	T_loc = glGetUniformLocation(R->program_id, "T");
+	color_loc = glGetUniformLocation(R->program_id, "color");
 
 	assert (T_loc != -1);
 
@@ -74,7 +80,9 @@ void ui_game_draw(struct ui_game* ui_g)
 		switch (e->type)
 		{
 		case G_PLAYER:
+			glUniform4fv(color_loc, 1, red);
 			r_septagon(R);	
+			break;
 
 		case G_TERRAIN:
 		case G_DIRT:
