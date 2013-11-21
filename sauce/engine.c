@@ -22,6 +22,9 @@
 #include "game/g_entity/g_player.h"
 #include "game/g_entity/g_terrain.h"
 
+#include "misc/mmath.h"
+#include "misc/simd.h"
+
 struct game teh_game;
 struct ui teh_ui;
 
@@ -29,13 +32,24 @@ struct ui teh_ui;
 
 #define M_PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679
 
-static float identity[4][4] =
+static void build_normals(struct r_polygon* s)
 {
-	{1, 0, 0, 0},
-	{0, 1, 0, 0},
-	{0, 0, 1, 0},
-	{0, 0, 0, 1},
-};
+	register unsigned i;
+
+	s->normalv = malloc(sizeof(float[s->vertc][2]));
+	s->pdistv = malloc(sizeof(float[s->vertc]));
+
+	for (i = 0; i < s->vertc; ++i)
+	{
+#define n (s->normalv[i])
+		v2sub(n, s->vertv[(i+1) % s->vertc], s->vertv[i]);
+		v2set(n, n[1], -n[0]); /* hope this is really a outer normal */
+		v2sprod(n, n, 1.0/sqrt(v2dprod(n, n))); /* normalize */
+		s->pdistv[i] = v2dprod(s->vertv[i], n);
+		//fprintf(stderr, "n[%d] = {%f; %f}\n", i, n[0], n[1]);
+#undef n
+	}
+}
 
 static void make_polygon(struct r_polygon* s, unsigned n)
 {
@@ -65,6 +79,8 @@ static void make_polygon(struct r_polygon* s, unsigned n)
 		s->triv[i][1] = i + 1;
 		s->triv[i][2] = ((i+1) % n) + 1;
 	}
+
+	build_normals(s);
 }
 
 static void make_terrain_polygon(struct r_polygon* s)
@@ -77,18 +93,12 @@ static void make_terrain_polygon(struct r_polygon* s)
 	s->triv = malloc(sizeof(unsigned short[s->tric][3]));
 	s->vertv = malloc(sizeof(float[s->vertc][2]));
 
-	s->vertv[0][0] = -1;
-	s->vertv[0][1] = -1;
-	s->vertv[1][0] =  1;
-	s->vertv[1][1] = -1;
-	s->vertv[2][0] =  1;
-	s->vertv[2][1] =  1;
-	s->vertv[3][0] =   .7;
-	s->vertv[3][1] = - .7;
-	s->vertv[4][0] = - .7;
-	s->vertv[4][1] = - .7;
-	s->vertv[5][0] = -1;
-	s->vertv[5][1] =  1;
+	v2set(s->vertv[0], -1.0, -1.0);
+	v2set(s->vertv[1],  1.0, -1.0);
+	v2set(s->vertv[2],  1.0,  1.0);
+	v2set(s->vertv[3],  0.7, -0.7);
+	v2set(s->vertv[4], -0.7, -0.7);
+	v2set(s->vertv[5], -1.0,  1.0);
 
 	s->triv[0][0] = 0;
 	s->triv[0][1] = 1;
@@ -102,6 +112,8 @@ static void make_terrain_polygon(struct r_polygon* s)
 	s->triv[3][0] = 1;
 	s->triv[3][1] = 2;
 	s->triv[3][2] = 3;
+
+	build_normals(s);
 }
 
 static void add_entities(struct game* G)
@@ -116,18 +128,18 @@ static void add_entities(struct game* G)
 	player.type = G_PLAYER;
 	terrain.type = G_TERRAIN;
 
-	memcpy(player.T, identity, sizeof(identity));
-	memcpy(player.dT, identity, sizeof(identity));
-	memcpy(terrain.T, identity, sizeof(identity));
-	memcpy(terrain.dT, identity, sizeof(identity));
+	m4cpy(player.T[0], m4I);
+	m4cpy(player.dT[0], m4I);
+	m4cpy(terrain.T[0], m4I);
+	m4cpy(terrain.dT[0], m4I);
 
 	/* move player 1 up */
 	player.T[3][1] += .5;
 
 	/* make player have 1/4 of it's size */
-	player.T[0][0] *= .25;
-	player.T[1][1] *= .25;
-	player.T[2][2] *= .25;
+	player.T[0][0] *= .5;
+	player.T[1][1] *= .5;
+	player.T[2][2] *= .5;
 
 	make_polygon(&septagon, 7);
 	make_terrain_polygon(&terrain_polygon);

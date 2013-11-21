@@ -26,6 +26,7 @@ LD := $(LD) $(LDFLAGS)
 
 MISC_OBJ := \
 	build/misc/list.o \
+	build/misc/simd.o \
 
 #
 # engine objects
