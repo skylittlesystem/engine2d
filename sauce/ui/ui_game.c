@@ -19,6 +19,7 @@
 #include "ui_game.h"
 #include "game/g_entity/g_player.h"
 #include "renderer/r_polygon.h"
+#include "renderer/r_box.h"
 
 void ui_game_draw(struct ui_game* ui_g)
 {
@@ -26,7 +27,7 @@ void ui_game_draw(struct ui_game* ui_g)
 	static float green[4] =	{0, 1, 0, 1};
 //	static float blue[4] =	{0, 0, 1, 1};
 
-	GLint T_loc;
+	GLint pos_loc;
 	GLint color_loc;
 
 	struct renderer* R;
@@ -39,26 +40,28 @@ void ui_game_draw(struct ui_game* ui_g)
 	entl = g_entl(g);
 
 	glUseProgram(R->program_id);
-	T_loc = glGetUniformLocation(R->program_id, "T");
+	pos_loc = glGetUniformLocation(R->program_id, "pos");
 	color_loc = glGetUniformLocation(R->program_id, "color");
 
-	assert (T_loc != -1);
+	assert (pos_loc != -1);
 
 	for (n = entl->root; n != NULL; n = n->next)
 	{
 #define e ((struct g_entity*) n->ptr)
-		glUniformMatrix4fv(T_loc, 1, GL_FALSE, (GLfloat*) e->T);
+		glUniform2fv(pos_loc, 1, (GLfloat*) e->pos);
 
 		switch (e->type)
 		{
 		case G_PLAYER:
 			glUniform4fv(color_loc, 1, red);
-			r_polygon(R, (struct r_polygon*) e->poly);
+			r_box(R, (struct r_box*) e->hit_box);
+			//r_polygon(R, (struct r_polygon*) e->poly);
 			break;
 
 		case G_TERRAIN:
 			glUniform4fv(color_loc, 1, green);
-			r_polygon(R, (struct r_polygon*) e->poly);
+			r_box(R, (struct r_box*) e->hit_box);
+			//r_polygon(R, (struct r_polygon*) e->poly);
 			break;
 
 		case G_DIRT:

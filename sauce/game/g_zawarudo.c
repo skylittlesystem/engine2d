@@ -16,145 +16,282 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
 #include "g_zawarudo.h"
 
 #include "misc/mmath.h"
 #include "misc/simd.h"
 
-static bool circle_collision(const float* a_b, const float* a_c, float r, float* restrict t)
+/*
+ *
+ *
+ * intersection routines
+ *
+ *
+ *
+ */
+
+static inline bool intersect3(
+		float* restrict c1, float* restrict c2,
+		float a1, float a2,
+		float b1, float b2)
 {
-	float A, B, C, delta, sqrt_delta;
+	/* those are necessary */
+	assert (b1 <= b2);
+	assert (a1 <= a2);
 
-	A = v2dprod(a_b, a_b); /* note that A is positive */
-	B = v2dprod(a_b, a_c) * 2;
-	C = v2dprod(a_c, a_c) - r*r;
-
-	delta = (B*B - 4*A*C);
-	if (delta < 0)
+	/* both on left */
+	if (a2 < b1)
 		return false;
 
-	sqrt_delta = sqrt(delta);
-	t[0] = (B - sqrt_delta)/(2*A);
-	t[1] = (B + sqrt_delta)/(2*A);
+	/* both on right */
+	if (b2 < a1)
+		return false;
+
+	(*c1) = max(a1, b1);
+	(*c2) = min(a2, b2);
 	return true;
 }
 
-static bool line_collision(const float* a, const float* a_b, const float* n, const float d, float* restrict t)
+static inline bool intersect2(
+		float* restrict c1, float* restrict c2,
+		float a1, float a2,
+		float b1, float b2)
 {
-	float A, B;
+	/* this is a requirement */
+	assert (b1 <= b2);
 
-	A = v2dprod(a_b, n);
-	if (A == 0)
-		return false;
+	/* reorder */
+	if (a1 > a2)
+		return intersect2(c1, c2, a2, a1, b1, b2);
 
-	B = d - v2dprod(a, n);
-	(*t) = B/A;
-	return true;
+	return intersect2(c1, c2, a1, a2, b1, b2);
 }
 
-static bool polygon_collision(const float* a, const float* a_b, const float* polyT, struct g_polygon* poly, float* restrict t)
+static inline bool intersect(
+		float* restrict c1, float* restrict c2,
+		float a1, float a2,
+		float b1, float b2)
 {
-	float tmp;
-	bool hit;
-	register unsigned i;
+	/* reorder */
+	if (a1 > a2)
+		return intersect2(c1, c2, a2, a1, b1, b2);
 
-	tmp = 0;
-	(*t) = 666;
-	hit = false;
+	return intersect2(c1, c2, a1, a2, b1, b2);
+}
 
-	for (i = 0; i < poly->vertc; ++i)
+/*
+ *
+ *
+ * axis aligned bounding box collision
+ *
+ *
+ *
+ */
+
+static int cmp_tp(const float** a, const float** b)
+{
+	if ((**a) < (**b)) return -1;
+	if ((**a) > (**b)) return 1;
+	return 0; /* unlikely */
+}
+
+static bool collide_aabb(
+		unsigned* restrict dir_hit,
+		float* restrict t_hit,
+		float* restrict a_pos,
+		struct g_box* restrict a_box,
+		float* restrict b_pos,
+		struct g_box* restrict b_box,
+		float* restrict a_vel,
+		float dt)
+{
+	/* TODO: simd is easy and straightforward */
+	int i;
+	float t[4], * tp[4];
+	float a[2][2], b[2][2];
+
+	v2add(a[0], a_pos, a_box->p);
+	v2add(b[0], b_pos, b_box->p);
+	v2add(a[1], a[0], a_box->d);
+	v2add(b[1], b[0], b_box->d);
+
+	//fprintf(stderr, "a = {%f, %f}, {%f, %f}\n", a[0][0], a[0][1], a[1][0], a[1][1]);
+	//fprintf(stderr, "b = {%f, %f}, {%f, %f}\n", b[0][0], b[0][1], b[1][0], b[1][1]);
+
+	/* calculate collision time for left, bottom, right and top */
+	v2sub(&t[0], b[1], a[0]);
+	v2sub(&t[2], b[0], a[1]);
+	v2div(&t[0], &t[0], a_vel);
+	v2div(&t[2], &t[2], a_vel);
+
+	//fprintf(stderr, "t = {%f, %f}, {%f, %f}\n", t[0], t[1], t[2], t[3]);
+
+	/* and order ascending */
+	tp[0] = &t[0];
+	tp[1] = &t[1];
+	tp[2] = &t[2];
+	tp[3] = &t[3];
+
+	qsort(tp, 4, sizeof (float*), (int(*)(const void*,const void*)) cmp_tp);
+
+	//fprintf(stderr, "tp = {%f, %f, %f, %f}\n", *tp[0], *tp[1], *tp[2], *tp[3]);
+
+	for (i = 0; i < 4; ++i)
 	{
-		float v[2], n[2], d;
-		m4v2prod(v, polyT, poly->vertv[i]);
-		m4v2prod_0(n, polyT, poly->normalv[i]);
-		d = v2dprod(v, n);
+		unsigned j, k;
+		float c1, c2, a_[2][2];
 
-		if (line_collision(a, a_b, n, d, &tmp))
+		/* convert to array index */
+		j = (unsigned) (tp[i] - &t[0]);
+
+		/* and validate result omg */
+		switch (j)
 		{
-			if (tmp > 0)
-			{
-				hit = true;
-				(*t) = fmin((*t), tmp);
-			}
+		/* left and right, check for y overlap */
+		case 0:
+		case 2:
+			k = 1;
+			break;
+
+		/* bottom and top, check for x overlap */
+		case 1:
+		case 3:
+			k = 0;
+			break;
+
+		/* wat */
+		default:
+			assert (false);
+		}
+
+		//fprintf(stderr, "it %d: t = %f\n", i, t[j]);
+
+		/* collision rapens negative omg */
+		if (t[j] < 0)
+			continue;
+
+		/* collision rapens after tiem */
+		if (t[j] > dt)
+			return false;
+
+		/* check for overlap on line collision */
+		v2lin(a_[0], a[0], 1, a_vel, t[j]);
+		v2lin(a_[1], a[1], 1, a_vel, t[j]);
+
+		assert (a_[0][k] <= a_[1][k]);
+		assert (b[0][k] <= b[1][k]);
+
+		if (intersect3(&c1, &c2, a_[0][k], a_[1][k], b[0][k], b[1][k]))
+		{
+			//fprintf(stderr, "HIT\n");
+			(*t_hit) = t[j];
+			return true;
 		}
 	}
 
-	return hit;
+	return false;
+}
+
+static bool collide_entities(
+		float* restrict t_hit,
+		struct g_entity* restrict e1,
+		struct g_entity* restrict e2,
+		float dt)
+{
+#define v1 e1->vel
+
+#define p1 e1->pos
+#define b1 e1->hit_box
+
+#define p2 e2->pos
+#define b2 e2->hit_box
+
+	unsigned dir_hit;
+	if (b1 && b2)
+		if (collide_aabb(&dir_hit, t_hit, p1, b1, p2, b2, v1, dt))
+			return true;
+
+#undef b2
+#undef p2
+
+#undef b1
+#undef p1
+
+#undef v1
+	return false;
+}
+
+static void move_entities(struct g_zawarudo* z, float dt)
+{
+	/* every entity */
+	struct llist_node* n1;
+	for (n1 = z->entl.root; n1; n1 = n1->next)
+	{
+		struct g_entity* e1 = n1->ptr;
+
+		//fprintf(stderr, "ent %d: vel = {%f, %f}\n", e1->id, e1->vel[0], e1->vel[1]);
+
+		/* skip if there is no motion! */
+		if (e1->vel[0] == 0 && e1->vel[1] == 0)
+			continue;
+
+		//fprintf(stderr, "ASD\n");
+
+		do
+		{
+			bool hit = false;
+			struct g_entity* e_hit;
+			float t_hit = dt;
+
+			/* FIXME: do something with this */
+			(void) e_hit;
+
+			/* and every entity */
+			struct llist_node* n2;
+			for (n2 = z->entl.root; n2; n2 = n2->next)
+			{
+				struct g_entity* e2 = n2->ptr;
+				float t;
+
+				/* except self */
+				if (n2 == n1)
+					continue;
+
+				e2 = n2->ptr;
+
+				/* try collision */
+				if (collide_entities(&t, e1, e2, dt))
+				{
+					/* this would have collided later */
+					if (t > t_hit)
+						continue;
+
+					hit = true;
+					e_hit = e2;
+					t_hit = t;
+				}
+			}
+
+			if (hit)
+			{
+				v2lin(e1->pos, e1->pos, 1, e1->vel, t_hit - 0.00001/v2len(e1->vel));
+				//v2set(e1->vel, 0, 0);
+				break;
+			}
+
+			v2lin(e1->pos, e1->pos, 1, e1->vel, dt);
+			break;
+		} while (true);
+
+	}
 }
 
 void g_zawarudo_frame(struct g_zawarudo* z, unsigned long dt)
 {
-	struct llist_node* n1, * n2;
+	float dt_ = ((float) dt) / 1000;
 
-	for (n1 = z->entl.root; n1 != NULL; n1 = n1->next)
-	{
-#define e1 ((struct g_entity*) n1->ptr)
-#define e2 ((struct g_entity*) n2->ptr)
-#define poly1 (e1->poly)
-#define poly2 (e2->poly)
-		e1->dT[3][1] = -.4;
-
-		for (n2 = n1->next; n2 != NULL; n2 = n2->next)
-		{
-			float a[2], b[2], c[2], a_b[2], a_c[2], r, t[2];
-			float t_max, t_run;
-			float R[4][4];
-			bool hit;
-			(void) hit;
-
-			m4v2prod(a, e1->T[0], poly1->bcir_p);
-			m4v2prod(b, e1->dT[0], a);
-
-			m4v2prod(c, e2->T[0], poly2->bcir_p);
-
-			//r = poly1->bcir_r + poly2->bcir_r;
-			r = .51;
-			(void) r;
-
-			v2sub(a_b, b, a);
-			v2sub(a_c, c, a);
-
-			t_max = ((float) dt) / 1000; /* seconds! */
-
-#if 0
-			if (circle_collision(a_b, a_c, r, t))
-			{
-
-				if (t[0] >= 0)
-					t_run = min(t[0], t_max);
-
-				else if (t[1] >= 0)
-					t_run = min(t[1], t_max);
-
-				else
-					t_run = t_max;
-			}
-
-			else
-			{
-				t_run = t_max;
-			}
-#endif
-
-			if (polygon_collision(a, a_b, e2->T[0], e2->poly, t))
-				t_run = fmin(t[0], t_max);
-
-			else
-				t_run = t_max;
-
-			hit = t_run < t_max;
-
-			if (hit)
-				t_run -= 0.0001;
-
-			m4lerp(R[0], e1->T[0], e1->dT[0], t_run);
-			m4cpy(e1->T[0], R[0]);
-		}
-
-		g_entity_frame(e1, dt);
-#undef e2
-#undef e1
-	}
+	move_entities(z, dt_);
 }
 
 struct llist* g_zawarudo_entl(struct g_zawarudo* z)
@@ -184,7 +321,7 @@ struct g_entity* g_zawarudo_find(struct g_zawarudo* z, unsigned id)
 		if (e->id == id)
 			return e;
 
-		/* ids are necessarily crescent */
+		/* ids are ascending */
 		if (e->id > id)
 			return NULL;
 #undef e

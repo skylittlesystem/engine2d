@@ -14,6 +14,9 @@
 #ifndef HAS_G_POLYGON_H
 #define HAS_G_POLYGON_H
 
+/* note on vertices and normals:
+ * vertices must be in counter-clockwise order and normals must be exterior!
+ */
 struct g_polygon
 {
 #define G_POLYGON_FIELDS \

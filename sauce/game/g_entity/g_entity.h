@@ -15,16 +15,16 @@
 #define HAS_G_ENTITY_H
 
 #include "../g_names.h"
-#include "../g_polygon.h"
+#include "../g_box.h"
 
 struct g_entity
 {
 #define G_ENTITY_FIELDS \
 	unsigned type;		/* entity type */ \
 	unsigned id;		/* unique identifier assigned by warudo */ \
-	float T[4][4];		/* transform matrix */ \
-	float dT[4][4];		/* transform rate of change (with time) */ \
-	struct g_polygon* poly;	/* polygonal model */ \
+	float pos[2];		/* position */ \
+	float vel[2];		/* linear velocity */ \
+	struct g_box* hit_box;	/* bounding box for collision */ \
 
 	G_ENTITY_FIELDS
 };

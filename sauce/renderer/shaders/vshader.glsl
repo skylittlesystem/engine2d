@@ -1,7 +1,8 @@
-uniform mat4 T;
+uniform vec2 pos;
 attribute vec4 v;
 
 void main()
 {
-	gl_Position = T * v;
+	vec4 p = vec4(pos, 0, 1);
+	gl_Position = p + v;
 }
