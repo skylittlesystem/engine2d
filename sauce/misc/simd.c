@@ -58,6 +58,18 @@ void v2sub(float* restrict a, const float* b, const float* c)
 	a[1] = b[1] - c[1];
 }
 
+void v2div(float* restrict a, const float* b, const float* c)
+{
+	a[0] = b[0] / c[0];
+	a[1] = b[1] / c[1];
+}
+
+void v2lin(float* restrict a, const float* b, const float c, const float* d, const float e)
+{
+	a[0] = b[0] * c + d[0] * e;
+	a[1] = b[1] * c + d[1] * e;
+}
+
 void m4sprod(float* restrict A, const float* B, float c)
 {
 	register unsigned j;

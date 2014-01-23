@@ -15,6 +15,7 @@
 #define HAS_SIMD_H
 
 #include <string.h>
+#include <math.h>
 
 extern float m4I[4][4];
 
@@ -24,6 +25,9 @@ void v2sprod(float* restrict a, const float* b, float c);
 float v2dprod(const float* a, const float* b);
 void v2add(float* restrict a, const float* b, const float* c);
 void v2sub(float* restrict a, const float* b, const float* c);
+void v2div(float* restrict a, const float* b, const float* c);
+void v2lin(float* restrict a, const float* b, const float c, const float* d, const float e);
+#define v2len(a) sqrt(v2dprod(a, a))
 
 #define m4cpy(a, b) memcpy(a, b, sizeof(float[4][4]))
 void m4sprod(float* restrict A, const float* B, float c);
