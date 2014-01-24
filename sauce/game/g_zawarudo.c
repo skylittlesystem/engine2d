@@ -118,15 +118,21 @@ static int cmp_tp(const float** a, const float** b)
 	return 0; /* unlikely */
 }
 
+/*
+ * Calculate teh first collision with b on a's path, if any, using axis-aligned
+ * bounding boxes
+ *
+ */
 static bool collide_aabb(
-		unsigned* restrict dir_hit,
-		float* restrict t_hit,
-		float* restrict a_pos,
-		struct g_box* restrict a_box,
-		float* restrict b_pos,
-		struct g_box* restrict b_box,
-		float* restrict a_vel,
-		float dt)
+		unsigned* restrict dir_hit,	/* left, bottom, right, top */
+		float* restrict t_hit,		/* time of collision */
+		float* restrict a_pos,		/* a's position */
+		struct g_box* restrict a_box,	/* a's hit box */
+		float* restrict b_pos,		/* b's position */
+		struct g_box* restrict b_box,	/* b's hit box */
+		float* restrict a_vel,		/* a's velocity */
+		float dt			/* time frame */
+		)
 {
 	/* TODO: simd is easy and straightforward */
 	int i;
@@ -215,11 +221,17 @@ static bool collide_aabb(
 	return false;
 }
 
+/*
+ * Calculate teh first collision with e2 on e1's path, if any, using
+ * axis-aligned bounding boxes
+ *
+ */
 static bool collide_entities(
-		float* restrict t_hit,
-		struct g_entity* restrict e1,
-		struct g_entity* restrict e2,
-		float dt)
+		float* restrict t_hit,		/* time of collision */
+		struct g_entity* restrict e1,	/* entity 1 */
+		struct g_entity* restrict e2,	/* entity 2 */
+		float dt			/* time frame */
+		)
 {
 #define v1 e1->vel
 
@@ -244,6 +256,10 @@ static bool collide_entities(
 	return false;
 }
 
+/*
+ * Move entities on warudo
+ *
+ */
 static void move_entities(struct g_zawarudo* z, float dt)
 {
 	/* every entity */
