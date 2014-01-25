@@ -233,12 +233,12 @@ static bool collide_entities(
 		float dt			/* time frame */
 		)
 {
-#define v1 e1->vel
+#define v1 e1->v
 
-#define p1 e1->pos
+#define p1 e1->p
 #define b1 e1->hit_box
 
-#define p2 e2->pos
+#define p2 e2->p
 #define b2 e2->hit_box
 
 	unsigned dir_hit;
@@ -268,10 +268,10 @@ static void move_entities(struct g_zawarudo* z, float dt)
 	{
 		struct g_entity* e1 = n1->ptr;
 
-		//fprintf(stderr, "ent %d: vel = {%f, %f}\n", e1->id, e1->vel[0], e1->vel[1]);
+		//fprintf(stderr, "ent %d: v = {%f, %f}\n", e1->id, e1->v[0], e1->v[1]);
 
 		/* skip if there is no motion! */
-		if (e1->vel[0] == 0 && e1->vel[1] == 0)
+		if (e1->v[0] == 0 && e1->v[1] == 0)
 			continue;
 
 		//fprintf(stderr, "ASD\n");
@@ -313,12 +313,12 @@ static void move_entities(struct g_zawarudo* z, float dt)
 
 			if (hit)
 			{
-				v2lin(e1->pos, e1->pos, 1, e1->vel, t_hit - 0.00001/v2len(e1->vel));
-				//v2set(e1->vel, 0, 0);
+				v2lin(e1->p, e1->p, 1, e1->v, t_hit - 0.00001/v2len(e1->v));
+				//v2set(e1->v, 0, 0);
 				break;
 			}
 
-			v2lin(e1->pos, e1->pos, 1, e1->vel, dt);
+			v2lin(e1->p, e1->p, 1, e1->v, dt);
 			break;
 		} while (true);
 

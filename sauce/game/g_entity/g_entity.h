@@ -44,8 +44,8 @@ struct g_entity
 #define G_ENTITY_FIELDS \
 	unsigned type;		/* entity type */ \
 	unsigned id;		/* unique identifier assigned by warudo */ \
-	float pos[2];		/* position */ \
-	float vel[2];		/* linear velocity */ \
+	float p[2];		/* position */ \
+	float v[2];		/* velocity */ \
 	struct g_box* hit_box;	/* bounding box for collision */ \
 
 	G_ENTITY_FIELDS

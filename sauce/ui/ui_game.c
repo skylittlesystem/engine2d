@@ -69,7 +69,7 @@ void ui_game_draw(struct ui_game* ui_g)
 	for (n = entl->root; n != NULL; n = n->next)
 	{
 #define e ((struct g_entity*) n->ptr)
-		glUniform2fv(pos_loc, 1, (GLfloat*) e->pos);
+		glUniform2fv(pos_loc, 1, (GLfloat*) e->p);
 
 		switch (e->type)
 		{

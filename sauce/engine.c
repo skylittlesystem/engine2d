@@ -56,23 +56,23 @@ struct ui teh_ui;
 struct g_player p1, p2;
 struct g_box box;
 
-static void add_entities(struct game* G)
+static void add_entities(struct game* g)
 {
 	v2set(box.p, -.25, -.25);
 	v2set(box.d, .5, .5);
 
 	p1.type = G_PLAYER;
-	v2set(p1.pos, 0, -1);
-	v2set(p1.vel, 0, 1);
+	v2set(p1.p, 0, -1);
+	v2set(p1.v, 0, 1);
 	p1.hit_box = &box;
 
 	p2.type = G_PLAYER;
-	v2set(p2.pos, 0, 1);
-	v2set(p2.vel, 0, -1);
+	v2set(p2.p, 0, 1);
+	v2set(p2.v, 0, -1);
 	p2.hit_box = &box;
 
-	g_add(G, (struct g_entity*) &p1);
-	g_add(G, (struct g_entity*) &p2);
+	g_add(g, (struct g_entity*) &p1);
+	g_add(g, (struct g_entity*) &p2);
 }
 
 /******************************************************************************/
