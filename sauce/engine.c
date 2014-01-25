@@ -40,7 +40,6 @@
 #include "game/game.h"
 #include "ui/ui.h"
 
-#include "renderer/r_polygon.h"
 #include "game/g_entity/g_player.h"
 #include "game/g_entity/g_terrain.h"
 

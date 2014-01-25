@@ -40,7 +40,6 @@
 
 #include "ui_game.h"
 #include "game/g_entity/g_player.h"
-#include "renderer/r_polygon.h"
 #include "renderer/r_box.h"
 
 void ui_game_draw(struct ui_game* ui_g)
@@ -77,13 +76,11 @@ void ui_game_draw(struct ui_game* ui_g)
 		case G_PLAYER:
 			glUniform4fv(color_loc, 1, red);
 			r_box(R, (struct r_box*) e->hit_box);
-			//r_polygon(R, (struct r_polygon*) e->poly);
 			break;
 
 		case G_TERRAIN:
 			glUniform4fv(color_loc, 1, green);
 			r_box(R, (struct r_box*) e->hit_box);
-			//r_polygon(R, (struct r_polygon*) e->poly);
 			break;
 
 		case G_DIRT:

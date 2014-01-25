@@ -33,7 +33,6 @@ MISC_OBJ := \
 #
 RENDERER_OBJ := \
 	build/renderer/renderer.o \
-	build/renderer/r_polygon.o \
 	build/renderer/r_box.o \
 
 R_SHADERS := \
