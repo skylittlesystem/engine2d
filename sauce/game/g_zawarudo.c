@@ -127,9 +127,9 @@ static bool collide_aabb(
 		unsigned* restrict dir_hit,	/* left, bottom, right, top */
 		float* restrict t_hit,		/* time of collision */
 		float* restrict a_pos,		/* a's position */
-		struct g_box* restrict a_box,	/* a's hit box */
+		struct g_boxxy* restrict a_box,	/* a's hit box */
 		float* restrict b_pos,		/* b's position */
-		struct g_box* restrict b_box,	/* b's hit box */
+		struct g_boxxy* restrict b_box,	/* b's hit box */
 		float* restrict a_vel,		/* a's velocity */
 		float dt			/* time frame */
 		)
@@ -236,10 +236,10 @@ static bool collide_entities(
 #define v1 e1->v
 
 #define p1 e1->p
-#define b1 e1->hit_box
+#define b1 e1->boxxy
 
 #define p2 e2->p
-#define b2 e2->hit_box
+#define b2 e2->boxxy
 
 	unsigned dir_hit;
 	if (b1 && b2)

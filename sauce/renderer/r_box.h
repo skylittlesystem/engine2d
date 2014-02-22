@@ -37,7 +37,7 @@
 #define HAS_R_BOX_H
 
 #include "renderer.h"
-#include "game/g_box.h"
+#include "game/g_boxxy.h"
 
 struct r_box
 {

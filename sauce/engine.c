@@ -54,7 +54,7 @@ struct ui teh_ui;
 #define M_PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679
 
 struct g_player p1, p2;
-struct g_box box;
+struct g_boxxy box;
 
 static void add_entities(struct game* g)
 {
@@ -64,12 +64,12 @@ static void add_entities(struct game* g)
 	p1.type = G_PLAYER;
 	v2set(p1.p, 0, -1);
 	v2set(p1.v, 0, 1);
-	p1.hit_box = &box;
+	p1.boxxy = &box;
 
 	p2.type = G_PLAYER;
 	v2set(p2.p, 0, 1);
 	v2set(p2.v, 0, -1);
-	p2.hit_box = &box;
+	p2.boxxy = &box;
 
 	g_add(g, (struct g_entity*) &p1);
 	g_add(g, (struct g_entity*) &p2);

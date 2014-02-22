@@ -75,12 +75,12 @@ void ui_game_draw(struct ui_game* ui_g)
 		{
 		case G_PLAYER:
 			glUniform4fv(color_loc, 1, red);
-			r_box(R, (struct r_box*) e->hit_box);
+			r_box(R, (struct r_box*) e->boxxy);
 			break;
 
 		case G_TERRAIN:
 			glUniform4fv(color_loc, 1, green);
-			r_box(R, (struct r_box*) e->hit_box);
+			r_box(R, (struct r_box*) e->boxxy);
 			break;
 
 		case G_DIRT:

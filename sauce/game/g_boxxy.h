@@ -25,7 +25,7 @@
  *
  *
  *
- * g_box.h
+ * g_boxxy.h
  *
  *
  *
@@ -33,11 +33,11 @@
  *
  */
 
-#ifndef HAS_G_BOX_H
-#define HAS_G_BOX_H
+#ifndef HAS_G_BOXXY_H
+#define HAS_G_BOXXY_H
 
-/* a bounding box */
-struct g_box
+/* my name is boxxy */
+struct g_boxxy
 {
 #define G_BOX_FIELDS \
 	float p[2]; /* position */ \
@@ -46,4 +46,4 @@ struct g_box
 	G_BOX_FIELDS
 };
 
-#endif /* HAS_G_BOX_H */
+#endif /* HAS_G_BOXXY_H */

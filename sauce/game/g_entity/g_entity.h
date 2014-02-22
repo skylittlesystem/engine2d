@@ -37,7 +37,7 @@
 #define HAS_G_ENTITY_H
 
 #include "../g_names.h"
-#include "../g_box.h"
+#include "../g_boxxy.h"
 
 struct g_entity
 {
@@ -46,7 +46,7 @@ struct g_entity
 	unsigned id;		/* unique identifier assigned by warudo */ \
 	float p[2];		/* position */ \
 	float v[2];		/* velocity */ \
-	struct g_box* hit_box;	/* bounding box for collision */ \
+	struct g_boxxy* boxxy;	/* bounding box for collision */ \
 
 	G_ENTITY_FIELDS
 };
