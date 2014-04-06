@@ -33,12 +33,14 @@
  *
  */
 
+#include <assert.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <SDL.h>
 #include "game/game.h"
 #include "ui/ui.h"
+#include "renderer/renderer.h"
 
 #include "game/g_entity/g_player.h"
 #include "game/g_entity/g_terrain.h"
@@ -46,8 +48,9 @@
 #include "misc/mmath.h"
 #include "misc/simd.h"
 
-struct game teh_game;
-struct ui teh_ui;
+static struct game teh_game;
+static struct ui teh_ui;
+
 
 /******************************************************************************/
 
@@ -106,6 +109,52 @@ static void sigh_install(int signo)
 }
 
 /*
+ *
+ *
+ * SDL stuff
+ *
+ *
+ *
+ */
+SDL_Window* window;
+SDL_GLContext gl_context;
+
+static int sdl_fini()
+{
+	SDL_Quit();
+	return 0;
+}
+
+static int sdl_init()
+{
+	SDL_Init(SDL_INIT_EVERYTHING);
+
+#define W 1024
+#define H 768
+
+	window = SDL_CreateWindow("!!!11!1!!1ONE!!",
+			SDL_WINDOWPOS_CENTERED,
+			SDL_WINDOWPOS_CENTERED,
+			W, H,
+			SDL_WINDOW_OPENGL
+			);
+
+	if (!window)
+		fprintf(stderr, "SDL_GetError(): %s\n", SDL_GetError());
+
+	assert (window); /* TODO: proper handling */
+
+	gl_context = SDL_GL_CreateContext(window);
+
+	if (!gl_context)
+		fprintf(stderr, "SDL_GetError(): %s\n", SDL_GetError());
+
+	assert (gl_context); /* TODO: proper handling */
+
+	return 0;
+}
+
+/*
  * Teh main function!!11!1ONE
  *
  */
@@ -116,9 +165,12 @@ int main(int argc, char *argv[])
 	sigh_install(SIGABRT);
 	sigh_install(SIGSEGV);
 
+	sdl_init();
+	r_init();
 	g_init(&teh_game);
 	ui_init(&teh_ui, &teh_game);
 
+	/* FIXME: remove this */
 	add_entities(&teh_game);
 
 	t1 = SDL_GetTicks();
@@ -129,11 +181,15 @@ int main(int argc, char *argv[])
 		g_frame(&teh_game, dt);
 		ui_frame(&teh_ui, dt);
 
+		SDL_GL_SwapWindow(window);
+
 		t1 = t2;
 	} while (!ui_should_quit(&teh_ui));
 
 	ui_fini(&teh_ui);
 	g_fini(&teh_game);
+	r_fini();
+	sdl_fini();
 
 	return 0;
 }

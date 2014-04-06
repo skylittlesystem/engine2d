@@ -36,12 +36,19 @@
 #ifndef HAS_G_PLAYER_H
 #define HAS_G_PLAYER_H
 
+#include <stdbool.h>
+
 #include "g_entity.h"
+#include "misc/list.h"
 
 struct g_player
 {
 #define G_PLAYER_FIELDS \
 	G_ENTITY_FIELDS \
+	bool try_walk;			/* whether we should walk */ \
+	unsigned long walk_t;		/* when walking started */ \
+	float walk_dir[2];		/* walk direction */ \
+	struct llist inventory;		/* list of player's items */ \
 
 	G_PLAYER_FIELDS
 };

@@ -41,7 +41,6 @@
 
 #include "game/game.h"
 #include "ui_game.h"
-#include "renderer/renderer.h"
 
 struct ui
 {
@@ -50,7 +49,8 @@ struct ui
 	SDL_Window* window;
 	SDL_GLContext gl_context;
 
-	struct renderer R;
+	struct renderer* renderer;
+
 	struct game* g;
 	struct ui_game ui_g;
 };

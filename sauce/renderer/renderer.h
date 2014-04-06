@@ -37,20 +37,29 @@
 #define HAS_RENDERER_H
 
 #if OPENGL_ES
-//#include <SDL_opengles.h>
 #include <SDL_opengles2.h>
 #else
 #include <SDL_opengl.h>
 #endif
 
-struct renderer
-{
-	GLuint vshader_id;
-	GLuint fshader_id;
-	GLuint program_id;
-};
+extern GLuint r_fshader_id, r_vshader_id, r_program_id;
+extern GLint r_pos_loc, r_color_loc;
 
-int r_fini(struct renderer* R);
-int r_init(struct renderer* R);
+/* some named colors (they should be constants even if not marked as such) */
+extern float r_red[4];
+extern float r_green[4];
+extern float r_blue[4];
+
+/* teh uniforms */
+#define r_pos2fv(v) glUniform2fv(r_pos_loc, 1, (v))
+#define r_color4fv(v) glUniform4fv(r_color_loc, 1, (v))
+#define r_clear() \
+{ \
+	glClearColor(1, 1, 1, 1); \
+	glClear(GL_COLOR_BUFFER_BIT); \
+}
+
+int r_fini();
+int r_init();
 
 #endif /* HAS_RENDERER_H */

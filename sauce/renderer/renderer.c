@@ -38,19 +38,29 @@
 #include <stdio.h>
 #include "renderer.h"
 
-/* FIXME: load this right */
+/* some named colors */
+float r_red[4] = {1, 0, 0, 1};
+float r_green[4] = {0, 1, 0, 1};
+float r_blue[4] = {0, 0, 1, 1};
+
+GLuint r_fshader_id, r_vshader_id, r_program_id;
+GLint r_pos_loc, r_color_loc;
+
+/* fragment shader */
 static GLchar fshader_sauce[] =
 {
 	#include "fshader.glsl.c"
 	, '\0'
 };
 
+/* vertex shader */
 static GLchar vshader_sauce[] =
 {
 	#include "vshader.glsl.c"
 	, '\0'
 };
 
+/* helper to initialize shader */
 static GLuint init_shader(GLenum type, GLchar* sauce)
 {
 	GLuint shader_id;
@@ -84,6 +94,7 @@ static GLuint init_shader(GLenum type, GLchar* sauce)
 	return shader_id;
 }
 
+/* helper to initialize program*/
 static GLuint init_program(unsigned shaderc, GLuint* shaderv)
 {
 	unsigned i;
@@ -120,31 +131,38 @@ static GLuint init_program(unsigned shaderc, GLuint* shaderv)
 	return prg_id;
 }
 
-int r_fini(struct renderer* R)
+int r_fini()
 {
-	glDeleteProgram(R->program_id);
-	glDeleteShader(R->fshader_id);
-	glDeleteShader(R->vshader_id);
+	glDeleteProgram(r_program_id);
+	glDeleteShader(r_fshader_id);
+	glDeleteShader(r_vshader_id);
 	return 0;
 }
 
-int r_init(struct renderer* R)
+int r_init()
 {
 	GLuint shaderv[2];
 
-	R->vshader_id = init_shader(GL_VERTEX_SHADER, vshader_sauce);
-	if (R->vshader_id == 0)
+	r_vshader_id = init_shader(GL_VERTEX_SHADER, vshader_sauce);
+	if (r_vshader_id == 0)
 		return -1;
 
-	R->fshader_id = init_shader(GL_FRAGMENT_SHADER, fshader_sauce);
-	if (R->fshader_id == 0)
+	r_fshader_id = init_shader(GL_FRAGMENT_SHADER, fshader_sauce);
+	if (r_fshader_id == 0)
 		return -1;
 
-	shaderv[0] = R->vshader_id;
-	shaderv[1] = R->fshader_id;
-	R->program_id = init_program(2, shaderv);
-	if (R->program_id == 0)
+	shaderv[0] = r_vshader_id;
+	shaderv[1] = r_fshader_id;
+	r_program_id = init_program(2, shaderv);
+	if (r_program_id == 0)
 		return -1;
+
+	/* make program active */
+	glUseProgram(r_program_id);
+
+	/* get uniform locations */
+	r_pos_loc = glGetUniformLocation(r_program_id, "pos");
+	r_color_loc = glGetUniformLocation(r_program_id, "color");
 
 	return 0;
 }

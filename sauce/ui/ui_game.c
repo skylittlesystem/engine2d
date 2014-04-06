@@ -40,56 +40,66 @@
 
 #include "ui_game.h"
 #include "game/g_entity/g_player.h"
-#include "renderer/r_box.h"
+#include "misc/simd.h"
+
+static void draw_boxxy(struct g_boxxy* b)
+{
+	float v[4][2];
+	unsigned short vi[6] = {0, 1, 2, 2, 1, 3};
+
+	v2cpy(v[0], b->p);
+	v2add(v[3], b->p, b->d);
+	v2set(v[1], v[3][0], v[0][1]);
+	v2set(v[2], v[0][0], v[3][1]);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, v);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, vi);
+}
+
+#if 0
+static void draw_inventory()
+{
+	/* TODO */
+}
+#endif
+
+static void draw_entity(struct g_entity* e)
+{
+	r_pos2fv(e->p);
+	switch (e->type)
+	{
+	case G_PLAYER:
+		r_color4fv(r_red);
+		break;
+	case G_TERRAIN:
+	case G_DIRT:
+	case G_BRICKS:
+	default:
+		r_color4fv(r_green);
+	}
+	draw_boxxy(e->boxxy);
+}
+
+#if 0
+static void draw_zawarudo(struct g_zawarudo* z)
+{
+	/* TODO */
+}
+#endif
 
 void ui_game_draw(struct ui_game* ui_g)
 {
-	static float red[4] =	{1, 0, 0, 1};
-	static float green[4] =	{0, 1, 0, 1};
-//	static float blue[4] =	{0, 0, 1, 1};
 
-	GLint pos_loc;
-	GLint color_loc;
-
-	struct renderer* R;
 	struct game* g;
 	struct llist* entl;
 	struct llist_node* n;
 	g = ui_g->g;
-	R = ui_g->R;
 
 	entl = g_entl(g);
 
-	glUseProgram(R->program_id);
-	pos_loc = glGetUniformLocation(R->program_id, "pos");
-	color_loc = glGetUniformLocation(R->program_id, "color");
-
-	assert (pos_loc != -1);
-
 	for (n = entl->root; n != NULL; n = n->next)
-	{
-#define e ((struct g_entity*) n->ptr)
-		glUniform2fv(pos_loc, 1, (GLfloat*) e->p);
-
-		switch (e->type)
-		{
-		case G_PLAYER:
-			glUniform4fv(color_loc, 1, red);
-			r_box(R, (struct r_box*) e->boxxy);
-			break;
-
-		case G_TERRAIN:
-			glUniform4fv(color_loc, 1, green);
-			r_box(R, (struct r_box*) e->boxxy);
-			break;
-
-		case G_DIRT:
-		case G_BRICKS:
-		default:
-			break;
-		}
-#undef e
-	}
+		draw_entity((struct g_entity*) n->ptr);
 }
 
 void ui_game_frame(struct ui_game* ui_g, unsigned long dt)

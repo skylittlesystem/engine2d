@@ -33,7 +33,7 @@ MISC_OBJ := \
 #
 RENDERER_OBJ := \
 	build/renderer/renderer.o \
-	build/renderer/r_box.o \
+	#build/renderer/r_boxxy.o \
 
 R_SHADERS := \
 	build/renderer/shaders/vshader.glsl.c \
