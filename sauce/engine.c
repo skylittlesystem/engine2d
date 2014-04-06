@@ -74,7 +74,7 @@ static void add_entities(struct game* g)
 	v2set(p2.v, 0, -1);
 	p2.boxxy = &box;
 
-	g_add(g, (struct g_entity*) &p1);
+	g_add_player(g, (struct g_player*) &p1);
 	g_add(g, (struct g_entity*) &p2);
 }
 

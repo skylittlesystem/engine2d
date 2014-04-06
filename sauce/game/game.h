@@ -41,7 +41,8 @@
 struct game
 {
 #define GAME_FIELDS \
-	struct g_zawarudo zawarudo;
+	struct g_zawarudo zawarudo; \
+	struct g_player* player;
 
 	GAME_FIELDS
 };
@@ -51,6 +52,7 @@ int g_fini(struct game* g);
 int g_init(struct game* g);
 #define g_entl(g) g_zawarudo_entl(&(g)->zawarudo)
 #define g_add(g, e) g_zawarudo_add(&(g)->zawarudo, (e))
+#define g_add_player(g, e) {g_add((g), (struct g_entity*) (e)); (g)->player = (e);}
 #define g_remove(g, e) g_zawarudo_remove(&(g)->zawarudo, (e))
 #define g_find(g, id) g_zawarudo_find(&(g)->zawarudo, (id))
 
