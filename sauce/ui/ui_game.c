@@ -75,9 +75,40 @@ static void draw_zawarudo(struct g_zawarudo* z)
 }
 #endif
 
+void ui_game_keydown(struct ui_game* ui_g, SDL_Keycode k)
+{
+	struct g_player* p = ui_g->g->player;
+
+	switch (k)
+	{
+	case SDLK_LEFT:
+		p->try_walk = true;
+		v2set(p->walk_dir, -1, 0);
+		return;
+
+	case SDLK_RIGHT:
+		p->try_walk = true;
+		v2set(p->walk_dir, 1, 0);
+		return;
+	}
+}
+
+void ui_game_keyup(struct ui_game* ui_g, SDL_Keycode k)
+{
+	struct g_player* p = ui_g->g->player;
+
+	switch (k)
+	{
+	case SDLK_LEFT:
+	case SDLK_RIGHT:
+		/* FIXME: this is buggy */
+		p->try_walk = false;
+		return;
+	}
+}
+
 void ui_game_draw(struct ui_game* ui_g)
 {
-
 	struct game* g;
 	struct llist* entl;
 	struct llist_node* n;

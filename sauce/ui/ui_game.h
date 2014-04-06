@@ -36,15 +36,16 @@
 #ifndef HAS_UI_GAME_H
 #define HAS_UI_GAME_H
 
-#include "renderer/renderer.h"
+#include <SDL.h>
 #include "game/game.h"
 
 struct ui_game
 {
-	struct renderer* R;
 	struct game* g;
 };
 
-void ui_game_frame();
+void ui_game_keydown(struct ui_game* ui_g, SDL_Keycode k);
+void ui_game_keyup(struct ui_game* ui_g, SDL_Keycode k);
+void ui_game_frame(struct ui_game* ui_g, unsigned long dt);
 
 #endif /* HAS_UI_GAME_H */

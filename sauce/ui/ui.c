@@ -41,6 +41,25 @@
 
 #include "renderer/renderer.h"
 
+static void ui_keydown(struct ui* ui, SDL_Keycode k)
+{
+	switch (k)
+	{
+	case SDLK_ESCAPE:
+		ui->quit = true;
+		return;
+	}
+
+	/* TODO: dispatch to focused component */
+	ui_game_keydown(&ui->ui_g, k);
+}
+
+static void ui_keyup(struct ui* ui, SDL_Keycode k)
+{
+	/* TODO: dispatch to focused component */
+	ui_game_keyup(&ui->ui_g, k);
+}
+
 static void ui_poll_events(struct ui* ui, unsigned long dt)
 {
 	SDL_Event ev;
@@ -49,15 +68,19 @@ static void ui_poll_events(struct ui* ui, unsigned long dt)
 		switch(ev.type)
 		{
 		case SDL_KEYDOWN:
-			if (ev.key.keysym.sym != SDLK_ESCAPE)
-				continue;
+			ui_keydown(ui, ev.key.keysym.sym);
+			break;
+
+		case SDL_KEYUP:
+			ui_keyup(ui, ev.key.keysym.sym);
+			break;
 
 		case SDL_QUIT:
 			ui->quit = true;
-
-		default:
-			//fprintf(stderr, "SDL_Event type = %d\n", ev.type);
 			break;
+
+		//default:
+			//fprintf(stderr, "SDL_Event type = %d\n", ev.type);
 		}
 	}
 }
