@@ -42,6 +42,8 @@
 struct ui_game
 {
 	struct game* g;
+
+	bool player_walk[4];
 };
 
 void ui_game_keydown(struct ui_game* ui_g, SDL_Keycode k);

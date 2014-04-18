@@ -45,9 +45,8 @@ struct g_player
 {
 #define G_PLAYER_FIELDS \
 	G_ENTITY_FIELDS \
-	bool try_walk;			/* whether we should walk */ \
 	unsigned long walk_t;		/* when walking started */ \
-	float walk_dir[2];		/* walk direction */ \
+	float walk_v[2];		/* walk velocity */ \
 	struct llist inventory;		/* list of player's items */ \
 
 	G_PLAYER_FIELDS

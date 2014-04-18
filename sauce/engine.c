@@ -57,10 +57,16 @@ static struct ui teh_ui;
 #define M_PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679
 
 struct g_player p1, p2;
+struct g_terrain t1, t2;
 struct g_boxxy box;
 
 static void add_entities(struct game* g)
 {
+	memset(&p1, 0, sizeof (p1));
+	memset(&p2, 0, sizeof (p2));
+	memset(&t1, 0, sizeof (t1));
+	memset(&t2, 0, sizeof (t2));
+
 	v2set(box.p, -.25, -.25);
 	v2set(box.d, .5, .5);
 
@@ -74,46 +80,24 @@ static void add_entities(struct game* g)
 	v2set(p2.v, 0, -1);
 	p2.boxxy = &box;
 
+	t1.type = G_TERRAIN;
+	v2set(t1.p, 1, 1);
+	t1.boxxy = &box;
+
+	t2.type = G_TERRAIN;
+	v2set(t2.p, 0, 0);
+	t2.boxxy = &box;
+
 	g_add_player(g, (struct g_player*) &p1);
 	g_add(g, (struct g_entity*) &p2);
+	g_add(g, (struct g_entity*) &t1);
+	g_add(g, (struct g_entity*) &t2);
 }
 
 /******************************************************************************/
 
-static void cleanup()
-{
-	fprintf(stderr, "Cleaning up!\n");
-	ui_fini(&teh_ui);
-	g_fini(&teh_game);
-}
-
-static void sigh(int signo)
-{
-	fprintf(stderr, "Caught signal %d.\n", signo);
-	cleanup();
-	fprintf(stderr, "Exitting with status -1...\n");
-	_Exit(-1);
-
-	/* raise signal again and let default action take place */
-	//signal(signo, SIG_DFL);
-	//raise(signo);
-}
-
-static void sigh_install(int signo)
-{
-	if (signal(signo, sigh) == SIG_ERR)
-	{
-		fputs("Phailed to install signal handler!\n", stderr);
-		exit(-1);
-	}
-}
-
 /*
- *
- *
  * SDL stuff
- *
- *
  *
  */
 SDL_Window* window;
@@ -152,6 +136,40 @@ static int sdl_init()
 	assert (gl_context); /* TODO: proper handling */
 
 	return 0;
+}
+
+/*
+ * signal handling
+ *
+ */
+static void cleanup()
+{
+	fprintf(stderr, "Cleaning up!\n");
+	ui_fini(&teh_ui);
+	g_fini(&teh_game);
+	r_fini();
+	sdl_fini();
+}
+
+static void sigh(int signo)
+{
+	fprintf(stderr, "Caught signal %d.\n", signo);
+	cleanup();
+	fprintf(stderr, "Exitting with status -1...\n");
+	_Exit(-1);
+
+	/* raise signal again and let default action take place */
+	//signal(signo, SIG_DFL);
+	//raise(signo);
+}
+
+static void sigh_install(int signo)
+{
+	if (signal(signo, sigh) == SIG_ERR)
+	{
+		fputs("Phailed to install signal handler!\n", stderr);
+		exit(-1);
+	}
 }
 
 /*

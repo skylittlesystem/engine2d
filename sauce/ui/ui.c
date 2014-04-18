@@ -60,6 +60,7 @@ static void ui_keyup(struct ui* ui, SDL_Keycode k)
 	ui_game_keyup(&ui->ui_g, k);
 }
 
+/* TODO: maybe this belongs to static sdl stuff? */
 static void ui_poll_events(struct ui* ui, unsigned long dt)
 {
 	SDL_Event ev;

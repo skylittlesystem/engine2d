@@ -40,6 +40,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "g_zawarudo.h"
+#include "game/g_entity/g_player.h"
 
 #include "misc/mmath.h"
 #include "misc/simd.h"
@@ -105,7 +106,7 @@ static inline bool intersect(
 /*
  *
  *
- * axis aligned bounding box collision
+ * axis aligned bounding boxxy collision
  *
  *
  *
@@ -120,16 +121,16 @@ static int cmp_tp(const float** a, const float** b)
 
 /*
  * Calculate teh first collision with b on a's path, if any, using axis-aligned
- * bounding boxes
+ * bounding boxxys
  *
  */
 static bool collide_aabb(
 		unsigned* restrict dir_hit,	/* left, bottom, right, top */
 		float* restrict t_hit,		/* time of collision */
 		float* restrict a_pos,		/* a's position */
-		struct g_boxxy* restrict a_box,	/* a's hit box */
+		struct g_boxxy* restrict a_box,	/* a's hit boxxy */
 		float* restrict b_pos,		/* b's position */
-		struct g_boxxy* restrict b_box,	/* b's hit box */
+		struct g_boxxy* restrict b_box,	/* b's hit boxxy */
 		float* restrict a_vel,		/* a's velocity */
 		float dt			/* time frame */
 		)
@@ -223,7 +224,7 @@ static bool collide_aabb(
 
 /*
  * Calculate teh first collision with e2 on e1's path, if any, using
- * axis-aligned bounding boxes
+ * axis-aligned bounding boxxys
  *
  */
 static bool collide_entities(
@@ -325,10 +326,31 @@ static void move_entities(struct g_zawarudo* z, float dt)
 	}
 }
 
+/*
+ * make entities walk
+ *
+ */
+static void walk_entities(struct g_zawarudo* z)
+{
+	/* every entity */
+	struct llist_node* n;
+	for (n = z->entl.root; n; n = n->next)
+	{
+		struct g_player* p = n->ptr;
+
+		switch (p->type)
+		{
+		case G_PLAYER:
+			v2cpy(p->v, p->walk_v);
+		}
+	}
+}
+
 void g_zawarudo_frame(struct g_zawarudo* z, unsigned long dt)
 {
 	float dt_ = ((float) dt) / 1000;
 
+	walk_entities(z);
 	move_entities(z, dt_);
 }
 
