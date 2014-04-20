@@ -59,9 +59,9 @@ static inline bool intersect3(
 		float a1, float a2,
 		float b1, float b2)
 {
-	/* those are necessary */
-	assert (b1 <= b2);
-	assert (a1 <= a2);
+	/* don't change to <=, since inf <= inf yields false */
+	assert (!(b1 > b2));
+	assert (!(a1 > a2));
 
 	/* both on left */
 	if (a2 < b1)
@@ -81,14 +81,14 @@ static inline bool intersect2(
 		float a1, float a2,
 		float b1, float b2)
 {
-	/* this is a requirement */
-	assert (b1 <= b2);
+	/* don't change to <=, since inf <= inf yields false */
+	assert (!(b1 > b2));
 
 	/* reorder */
 	if (a1 > a2)
 		return intersect2(c1, c2, a2, a1, b1, b2);
 
-	return intersect2(c1, c2, a1, a2, b1, b2);
+	return intersect3(c1, c2, a1, a2, b1, b2);
 }
 
 static inline bool intersect(
@@ -103,6 +103,8 @@ static inline bool intersect(
 	return intersect2(c1, c2, a1, a2, b1, b2);
 }
 
+#define THICK .0000001
+
 /*
  *
  *
@@ -112,11 +114,38 @@ static inline bool intersect(
  *
  */
 
-static int cmp_tp(const float** a, const float** b)
+static inline void sweep_aabb_slab(
+		float (*restrict t)[2],
+		float* restrict n,
+		float (*restrict a)[2],
+		float (*restrict b)[2],
+		float* restrict v,
+		unsigned k
+		)
 {
-	if ((**a) < (**b)) return -1;
-	if ((**a) > (**b)) return 1;
-	return 0; /* unlikely */
+		int i, j;
+
+		if (v[k] == 0)
+		{
+			float c;
+
+			n[k] = 0;
+
+			if (intersect3(&c, &c, a[0][k], a[1][k], b[0][k], b[1][k]))
+				t[0][k] = -INFINITY;
+			else
+				t[0][k] = INFINITY;
+
+			t[1][k] = INFINITY;
+			return;
+		}
+
+		i = v[k] < 0 ? 0 : 1;
+		j = (i + 1) % 2;
+
+		n[k] = - (2 * i - 1);
+		t[0][k] = (b[j][k] - a[i][k]) / v[k];
+		t[1][k] = (b[i][k] - a[j][k]) / v[k];
 }
 
 /*
@@ -124,102 +153,38 @@ static int cmp_tp(const float** a, const float** b)
  * bounding boxxys
  *
  */
-static bool collide_aabb(
-		unsigned* restrict dir_hit,	/* left, bottom, right, top */
-		float* restrict t_hit,		/* time of collision */
-		float* restrict a_pos,		/* a's position */
-		struct g_boxxy* restrict a_box,	/* a's hit boxxy */
-		float* restrict b_pos,		/* b's position */
-		struct g_boxxy* restrict b_box,	/* b's hit boxxy */
-		float* restrict a_vel,		/* a's velocity */
-		float dt			/* time frame */
+static bool sweep_aabb(
+		float* restrict t_,		/* collision time */
+		float* restrict n,		/* collision normal */
+		float (*restrict a)[2],		/* a's AABB */
+		float (*restrict b)[2],		/* b's AABB */
+		float* restrict v		/* a's velocity */
 		)
 {
-	/* TODO: simd is easy and straightforward */
-	int i;
-	float t[4], * tp[4];
-	float a[2][2], b[2][2];
+	float t_in, t_out, t[2][2];
 
-	v2add(a[0], a_pos, a_box->p);
-	v2add(b[0], b_pos, b_box->p);
-	v2add(a[1], a[0], a_box->d);
-	v2add(b[1], b[0], b_box->d);
+	v2set(n, 0, 0);
+	sweep_aabb_slab(t, n, a, b, v, 0);
+	sweep_aabb_slab(t, n, a, b, v, 1);
 
-	//fprintf(stderr, "a = {%f, %f}, {%f, %f}\n", a[0][0], a[0][1], a[1][0], a[1][1]);
-	//fprintf(stderr, "b = {%f, %f}, {%f, %f}\n", b[0][0], b[0][1], b[1][0], b[1][1]);
+	/* check if collision times intersect */
+	if (!intersect3(&t_in, &t_out, t[0][0], t[1][0], t[0][1], t[1][1]))
+		return false;
 
-	/* calculate collision time for left, bottom, right and top */
-	v2sub(&t[0], b[1], a[0]);
-	v2sub(&t[2], b[0], a[1]);
-	v2div(&t[0], &t[0], a_vel);
-	v2div(&t[2], &t[2], a_vel);
+	/* horizontal */
+	if (t[0][1] < t_in)
+		n[1] = 0;
 
-	//fprintf(stderr, "t = {%f, %f}, {%f, %f}\n", t[0], t[1], t[2], t[3]);
+	/* vertical */
+	else if (t[0][0] < t_in)
+		n[0] = 0;
 
-	/* and order ascending */
-	tp[0] = &t[0];
-	tp[1] = &t[1];
-	tp[2] = &t[2];
-	tp[3] = &t[3];
+	/* teh fucking corner */
+	else
+		v2sprod(n, n, 1.414213562373095048801688724209698078);
 
-	qsort(tp, 4, sizeof (float*), (int(*)(const void*,const void*)) cmp_tp);
-
-	//fprintf(stderr, "tp = {%f, %f, %f, %f}\n", *tp[0], *tp[1], *tp[2], *tp[3]);
-
-	for (i = 0; i < 4; ++i)
-	{
-		unsigned j, k;
-		float c1, c2, a_[2][2];
-
-		/* convert to array index */
-		j = (unsigned) (tp[i] - &t[0]);
-
-		/* and validate result omg */
-		switch (j)
-		{
-		/* left and right, check for y overlap */
-		case 0:
-		case 2:
-			k = 1;
-			break;
-
-		/* bottom and top, check for x overlap */
-		case 1:
-		case 3:
-			k = 0;
-			break;
-
-		/* wat */
-		default:
-			assert (false);
-		}
-
-		//fprintf(stderr, "it %d: t = %f\n", i, t[j]);
-
-		/* collision rapens negative omg */
-		if (t[j] < 0)
-			continue;
-
-		/* collision rapens after tiem */
-		if (t[j] > dt)
-			return false;
-
-		/* check for overlap on line collision */
-		v2lin(a_[0], a[0], 1, a_vel, t[j]);
-		v2lin(a_[1], a[1], 1, a_vel, t[j]);
-
-		assert (a_[0][k] <= a_[1][k]);
-		assert (b[0][k] <= b[1][k]);
-
-		if (intersect3(&c1, &c2, a_[0][k], a_[1][k], b[0][k], b[1][k]))
-		{
-			//fprintf(stderr, "HIT\n");
-			(*t_hit) = t[j];
-			return true;
-		}
-	}
-
-	return false;
+	(*t_) = t_in;
+	return true;
 }
 
 /*
@@ -227,34 +192,24 @@ static bool collide_aabb(
  * axis-aligned bounding boxxys
  *
  */
-static bool collide_entities(
-		float* restrict t_hit,		/* time of collision */
-		struct g_entity* restrict e1,	/* entity 1 */
-		struct g_entity* restrict e2,	/* entity 2 */
-		float dt			/* time frame */
+static float sweep_entities(
+		float* restrict t,		/* collision time */
+		float* restrict n,		/* collision normal */
+		struct g_entity* restrict ea,	/* entity a */
+		struct g_entity* restrict eb	/* entity b */
 		)
 {
-#define v1 e1->v
+	float a[2][2], b[2][2];
 
-#define p1 e1->p
-#define b1 e1->boxxy
+	if (!ea->boxxy || !eb->boxxy)
+		return false;
 
-#define p2 e2->p
-#define b2 e2->boxxy
+	v2add(a[0], ea->p, ea->boxxy->p);
+	v2add(a[1], a[0], ea->boxxy->d);
+	v2add(b[0], eb->p, eb->boxxy->p);
+	v2add(b[1], b[0], eb->boxxy->d);
 
-	unsigned dir_hit;
-	if (b1 && b2)
-		if (collide_aabb(&dir_hit, t_hit, p1, b1, p2, b2, v1, dt))
-			return true;
-
-#undef b2
-#undef p2
-
-#undef b1
-#undef p1
-
-#undef v1
-	return false;
+	return sweep_aabb(t, n, a, b, ea->v);
 }
 
 /*
@@ -269,54 +224,62 @@ static void move_entities(struct g_zawarudo* z, float dt)
 	{
 		struct g_entity* e1 = n1->ptr;
 
-		//fprintf(stderr, "ent %d: v = {%f, %f}\n", e1->id, e1->v[0], e1->v[1]);
-
 		/* skip if there is no motion! */
 		if (e1->v[0] == 0 && e1->v[1] == 0)
 			continue;
 
-		//fprintf(stderr, "ASD\n");
-
 		do
 		{
-			bool hit = false;
+			float normal[2];
+			bool hit;
 			struct g_entity* e_hit;
-			float t_hit = dt;
+			float t_hit;
+
+			hit = false;
+			t_hit = dt;
 
 			/* FIXME: do something with this */
 			(void) e_hit;
 
-			/* and every entity */
+			/* and every entity, finding teh first collision */
 			struct llist_node* n2;
 			for (n2 = z->entl.root; n2; n2 = n2->next)
 			{
 				struct g_entity* e2 = n2->ptr;
-				float t;
+				float t, n[2];
 
 				/* except self */
 				if (n2 == n1)
 					continue;
 
-				e2 = n2->ptr;
-
 				/* try collision */
-				if (collide_entities(&t, e1, e2, dt))
+				if (sweep_entities(&t, n, e1, e2))
 				{
+					/* asd */
+					if (t < 0)
+						continue;
+
+					/* make stuff thick */
+					t += THICK / v2dprod(e1->v, n);
+
 					/* this would have collided later */
-					if (t > t_hit)
+					if (t >= t_hit)
 						continue;
 
 					hit = true;
 					e_hit = e2;
 					t_hit = t;
+					v2cpy(normal, n);
 				}
 			}
 
 			if (hit)
 			{
-				v2lin(e1->p, e1->p, 1, e1->v, t_hit - 0.00001/v2len(e1->v));
-				//v2set(e1->v, 0, 0);
-				break;
+				float teh_tan[2];
+				v2set(teh_tan, -normal[1], normal[0]);
+				v2lin(e1->p, e1->p, 1, e1->v, t_hit);
+				v2sprod(e1->v, teh_tan, v2dprod(e1->v, teh_tan));
+				continue; /* try again! */
 			}
 
 			v2lin(e1->p, e1->p, 1, e1->v, dt);

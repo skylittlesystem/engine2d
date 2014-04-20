@@ -58,7 +58,7 @@ static struct ui teh_ui;
 
 struct g_player p1, p2;
 struct g_terrain t1, t2;
-struct g_boxxy box;
+struct g_boxxy box, pbox;
 
 static void add_entities(struct game* g)
 {
@@ -70,10 +70,13 @@ static void add_entities(struct game* g)
 	v2set(box.p, -.25, -.25);
 	v2set(box.d, .5, .5);
 
+	v2set(pbox.p, -.24, -.24);
+	v2set(pbox.d, .48, .48);
+
 	p1.type = G_PLAYER;
 	v2set(p1.p, 0, -1);
 	v2set(p1.v, 0, 1);
-	p1.boxxy = &box;
+	p1.boxxy = &pbox;
 
 	p2.type = G_PLAYER;
 	v2set(p2.p, 0, 1);
@@ -204,10 +207,7 @@ int main(int argc, char *argv[])
 		t1 = t2;
 	} while (!ui_should_quit(&teh_ui));
 
-	ui_fini(&teh_ui);
-	g_fini(&teh_game);
-	r_fini();
-	sdl_fini();
+	cleanup();
 
 	return 0;
 }
