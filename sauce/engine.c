@@ -58,7 +58,6 @@ static struct ui teh_ui;
 
 struct g_player p1, p2;
 struct g_terrain t1, t2;
-struct g_boxxy box, pbox;
 
 static void add_entities(struct game* g)
 {
@@ -67,29 +66,27 @@ static void add_entities(struct game* g)
 	memset(&t1, 0, sizeof (t1));
 	memset(&t2, 0, sizeof (t2));
 
-	v2set(box.p, -.25, -.25);
-	v2set(box.d, .5, .5);
+	v2set(p2.boxxy[0], -.25, -.25);
+	v2set(p2.boxxy[1], .5, .5);
+	memcpy(t1.boxxy, p2.boxxy, sizeof (t1.boxxy));
+	memcpy(t2.boxxy, p2.boxxy, sizeof (t2.boxxy));
 
-	v2set(pbox.p, -.24, -.24);
-	v2set(pbox.d, .48, .48);
+	v2set(p1.boxxy[0], -.24, -.24);
+	v2set(p1.boxxy[1], .48, .48);
 
 	p1.type = G_PLAYER;
 	v2set(p1.p, 0, -1);
 	v2set(p1.v, 0, 1);
-	p1.boxxy = &pbox;
 
 	p2.type = G_PLAYER;
 	v2set(p2.p, 0, 1);
 	v2set(p2.v, 0, -1);
-	p2.boxxy = &box;
 
 	t1.type = G_TERRAIN;
 	v2set(t1.p, 1, 1);
-	t1.boxxy = &box;
 
 	t2.type = G_TERRAIN;
 	v2set(t2.p, 0, 0);
-	t2.boxxy = &box;
 
 	g_add_player(g, (struct g_player*) &p1);
 	g_add(g, (struct g_entity*) &p2);

@@ -36,8 +36,6 @@
 #ifndef HAS_R_GAME_H
 #define HAS_R_GAME_H
 
-#include "game/g_boxxy.h"
-
-void r_boxxy(struct g_boxxy* b);
+void r_boxxy(float (*boxxy)[2]);
 
 #endif /* HAS_R_GAME_H */

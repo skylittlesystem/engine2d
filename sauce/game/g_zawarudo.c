@@ -201,13 +201,10 @@ static float sweep_entities(
 {
 	float a[2][2], b[2][2];
 
-	if (!ea->boxxy || !eb->boxxy)
-		return false;
-
-	v2add(a[0], ea->p, ea->boxxy->p);
-	v2add(a[1], a[0], ea->boxxy->d);
-	v2add(b[0], eb->p, eb->boxxy->p);
-	v2add(b[1], b[0], eb->boxxy->d);
+	v2add(a[0], ea->p, ea->boxxy[0]);
+	v2add(a[1], a[0], ea->boxxy[1]);
+	v2add(b[0], eb->p, eb->boxxy[0]);
+	v2add(b[1], b[0], eb->boxxy[1]);
 
 	return sweep_aabb(t, n, a, b, ea->v);
 }

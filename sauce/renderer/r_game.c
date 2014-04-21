@@ -37,18 +37,17 @@
 #include <stdbool.h>
 #include "renderer.h"
 #include "game/game.h"
-#include "game/g_boxxy.h"
 #include "game/g_entity/g_player.h"
 
 #include "misc/simd.h"
 
-void r_boxxy(struct g_boxxy* b)
+void r_boxxy(float (*boxxy)[2])
 {
 	float v[4][2];
 	unsigned short vi[6] = {0, 1, 2, 2, 1, 3};
 
-	v2cpy(v[0], b->p);
-	v2add(v[3], b->p, b->d);
+	v2cpy(v[0], boxxy[0]);
+	v2add(v[3], boxxy[0], boxxy[1]);
 	v2set(v[1], v[3][0], v[0][1]);
 	v2set(v[2], v[0][0], v[3][1]);
 
