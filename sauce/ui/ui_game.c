@@ -151,25 +151,29 @@ void ui_game_frame(struct ui_game* ui_g, unsigned long dt)
 {
 	/* make player walk */
 	float* v;
-	v = &ui_g->g->player->walk_v[0];
 
-	v2set(v, 0, 0);
+	if (ui_g->g->player)
+	{
+		v = &ui_g->g->player->walk_v[0];
 
-	if (ui_g->player_walk[0])
-		v[0] += 1;
+		v2set(v, 0, 0);
 
-	if (ui_g->player_walk[1])
-		v[1] += 1;
+		if (ui_g->player_walk[0])
+			v[0] += 1;
 
-	if (ui_g->player_walk[2])
-		v[0] -= 1;
+		if (ui_g->player_walk[1])
+			v[1] += 1;
 
-	if (ui_g->player_walk[3])
-		v[1] -= 1;
+		if (ui_g->player_walk[2])
+			v[0] -= 1;
 
-	//v2sprod(v, v, 1.0/v2len(v));
-	if (v2len(v) > 1)
-		v2sprod(v, v, 1.0/v2len(v));
+		if (ui_g->player_walk[3])
+			v[1] -= 1;
+
+		//v2sprod(v, v, 1.0/v2len(v));
+		if (v2len(v) > 1)
+			v2sprod(v, v, 1.0/v2len(v));
+	}
 
 	ui_game_draw(ui_g);
 }
