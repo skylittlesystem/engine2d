@@ -43,26 +43,28 @@
 int j0g2_vec(
 		float* v,
 		unsigned n,
-		int val,
 		const char* jason,
 		unsigned short* index
 		)
 {
-	int i;
-	const char* sjason;
-	unsigned short sindex[2*n+1];
+	unsigned short* i;
 
-	sjason = jason + index[val];
+	for (i = index; n > 0 && (*i); --n, i += 2)
+		(*(v++)) = strtof(jason + (*i), NULL);
 
-	i = js0n((const unsigned char*) sjason, index[val+1], sindex, 2*n+1);
-
-	if (i) return i;
-
-	for (i = 0; i < n && sindex[2*i]; ++i)
-		v[i] = j0g2_flt(2*i, sjason, sindex);
-
-	if (i < n) return -1;
-
-	return 0;
+	return n;
 }
 
+int j0g2_vec_malloc(
+		unsigned* c,
+		float** v,
+		const char* jason,
+		unsigned short* index
+		)
+{
+	unsigned short* i;
+
+	for (i = index; (*i); ++(*c), i += 2);
+	(*v) = malloc(sizeof (float) * (*c));
+	return j0g2_vec((*v), (*c), jason, index);
+}

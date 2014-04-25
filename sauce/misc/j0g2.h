@@ -37,21 +37,44 @@
 #define HAS_J0G2_H
 
 #include <stdlib.h>
+#include "js0n.h"
 #include "j0g.h"
 
 /* NOTE: maybe use j0g_safe? */
 
-#define j0g2_pt(v, j, i) &(j)[i[v]]
-#define j0g2_flt(v, j, i) strtof(j0g2_pt(v, j, i), NULL)
+#define js0nc(j, l, i, il) js0n((const unsigned char*) (j), (l), (i), (il))
 
-#define j0g2k_pt(k, j, i) j0g2_pt(j0g_val(k, j, i), j, i)
-#define j0g2k_flt(k, j, i) j0g2_flt(j0g_val(k, j, i), j, i)
-#define j0g2k_vec(x, n, k, j, i) j0g2_vec(x, n, j0g_val(k, j, i), j, i)
+#define SUBJASON_BEGIN(val, jason, index) \
+{ \
+	char* sjason; \
+	unsigned slen; \
+	sjason = jason + index[val];\
+	slen = index[val+1]; \
+	unsigned short sindex[slen]; \
+	int js0n_r = js0nc(sjason, slen, sindex, slen); \
+	(void) js0n_r
+
+#define SUBJASON_END() \
+}
+
+#define SUBJASON_KEY_BEGIN(key, jason, index) \
+{ \
+	int val = j0g_val(key, jason, index); \
+	SUBJASON_BEGIN(val, jason, index);
+
+#define SUBJASON_KEY_END() \
+	SUBJASON_END(); \
+}
 
 int j0g2_vec(
 		float* v,
 		unsigned n,
-		int val,
+		const char* jason,
+		unsigned short* index
+		);
+int j0g2_vec_malloc(
+		unsigned* c,
+		float** v,
 		const char* jason,
 		unsigned short* index
 		);

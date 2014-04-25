@@ -34,9 +34,11 @@
  */
 
 #include "g_terrain.h"
+#include "misc/j0g2.h"
 
 void g_terrain_frame(struct g_terrain* ter, unsigned long dt)
 {
+
 }
 
 int g_terrain_from_jason(
@@ -50,6 +52,11 @@ int g_terrain_from_jason(
 
 	if (r)
 		return r;
+
+	SUBJASON_KEY_BEGIN("verts", jason, index);
+	j0g2_vec_malloc(&e->vertc, (float**) &e->vertv, sjason, sindex);
+	e->vertc /= 2;
+	SUBJASON_KEY_END();
 
 	e->type = G_TERRAIN;
 	return 0;

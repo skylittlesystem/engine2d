@@ -44,14 +44,45 @@
 void r_boxxy(float (*boxxy)[2])
 {
 	float v[4][2];
-	unsigned short vi[6] = {0, 1, 2, 2, 1, 3};
-
 	v2cpy(v[0], boxxy[0]);
-	v2add(v[3], boxxy[0], boxxy[1]);
-	v2set(v[1], v[3][0], v[0][1]);
-	v2set(v[2], v[0][0], v[3][1]);
+	v2add(v[2], boxxy[0], boxxy[1]);
+	v2set(v[1], v[2][0], v[0][1]);
+	v2set(v[3], v[0][0], v[2][1]);
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, v);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, vi);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+
+void r_poly(unsigned c, float* (v)[2])
+{
+	glEnable(GL_STENCIL_TEST);
+	assert (glIsEnabled(GL_STENCIL_TEST));
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, v);
+
+	glStencilMask(127);
+	glClearStencil(0);
+	glClear(GL_STENCIL_BUFFER_BIT);
+
+	/**/
+
+	glStencilFunc(GL_NEVER, 0, 127);
+	glStencilOp(GL_INVERT, GL_KEEP, GL_KEEP);
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, c);
+
+	/**/
+
+	glStencilMask(0);
+	glStencilFunc(GL_NOTEQUAL, 0, 127);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, c);
+
+	/**/
+
+	glDisable(GL_STENCIL_TEST);
+	assert (!glIsEnabled(GL_STENCIL_TEST));
 }

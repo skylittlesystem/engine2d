@@ -166,8 +166,6 @@ static void asd()
 
 static void add_entities(struct game* g)
 {
-
-
 #if 0
 	memset(&p1, 0, sizeof (p1));
 	memset(&p2, 0, sizeof (p2));
@@ -224,6 +222,8 @@ static int sdl_init()
 
 #define W 1024
 #define H 768
+
+	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
 	window = SDL_CreateWindow("!!!11!1!!1ONE!!",
 			SDL_WINDOWPOS_CENTERED,

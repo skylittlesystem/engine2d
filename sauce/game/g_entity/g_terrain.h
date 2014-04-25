@@ -42,6 +42,8 @@ struct g_terrain
 {
 #define G_TERRAIN_FIELDS \
 	G_ENTITY_FIELDS \
+	unsigned vertc; \
+	float (*vertv)[2]; \
 	
 	G_TERRAIN_FIELDS
 };

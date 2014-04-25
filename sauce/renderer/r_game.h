@@ -37,5 +37,6 @@
 #define HAS_R_GAME_H
 
 void r_boxxy(float (*boxxy)[2]);
+void r_poly(unsigned c, float (*v)[2]);
 
 #endif /* HAS_R_GAME_H */

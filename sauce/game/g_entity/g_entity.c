@@ -68,15 +68,20 @@ int g_entity_from_jason(
 		unsigned short* index
 		)
 {
-	j0g2k_vec(e->p, 2, "p", jason, index);
-	j0g2k_vec(&e->boxxy[0][0], 4, "boxxy", jason, index);
-
+	SUBJASON_KEY_BEGIN("p", jason, index);
+	j0g2_vec(e->p, 2, sjason, sindex);
+	SUBJASON_KEY_END();
 	fprintf(stderr, "p: %G, %G\n", e->p[0], e->p[1]);
+
+	SUBJASON_KEY_BEGIN("boxxy", jason, index);
+	j0g2_vec(e->boxxy[0], 4, sjason, sindex);
+	SUBJASON_KEY_END();
 	fprintf(stderr, "boxxy: %G, %G, %G, %G\n",
 			e->boxxy[0][0],
 			e->boxxy[0][1],
 			e->boxxy[1][0],
 			e->boxxy[1][1]);
+
 	return 0;
 }
 

@@ -42,6 +42,7 @@
 #include "renderer/r_game.h"
 #include "ui_game.h"
 #include "game/g_entity/g_player.h"
+#include "game/g_entity/g_terrain.h"
 #include "misc/simd.h"
 
 /*
@@ -108,19 +109,30 @@ static void draw_inventory()
 
 static void draw_entity(struct g_entity* e)
 {
+	struct g_terrain* terr;
+	terr = (struct g_terrain*) e;
+
 	r_pos2fv(e->p);
 	switch (e->type)
 	{
 	case G_PLAYER:
 		r_color4fv(r_red);
+		r_boxxy(e->boxxy);
 		break;
+
 	case G_TERRAIN:
+		r_color4fv(r_blue);
+		r_boxxy(e->boxxy);
+		r_color4fv(r_green);
+		r_poly(terr->vertc, terr->vertv);
+		break;
+
 	case G_DIRT:
 	case G_BRICKS:
 	default:
 		r_color4fv(r_green);
+		r_boxxy(e->boxxy);
 	}
-	r_boxxy(e->boxxy);
 }
 
 #if 0
