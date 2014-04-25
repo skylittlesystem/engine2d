@@ -25,7 +25,7 @@
  *
  *
  *
- * g_player.c
+ * j0g2.c
  *
  *
  *
@@ -34,35 +34,35 @@
  */
 
 #include <stdio.h>
-#include "g_player.h"
 
-void g_player_move(struct g_player* e, float d[2])
-{
-	/* TODO */
-}
+#include "js0n.h"
+#include "j0g2.h"
 
-void g_player_look(struct g_player* e, float d[2])
-{
-	/* TODO */
-}
+/* NOTE: maybe use j0g_safe? */
 
-void g_player_frame(struct g_player* e, unsigned long dt)
-{
-	//fprintf(stderr, "=oplayer %d framing!!1!11ONE!\n", e->id);
-}
-
-int g_player_from_jason(
-		struct g_player* e,
-		char* jason,
+int j0g2_vec(
+		float* v,
+		unsigned n,
+		int val,
+		const char* jason,
 		unsigned short* index
 		)
 {
-	int r;
-	r = g_entity_from_jason((struct g_entity*) e, jason, index);
+	int i;
+	const char* sjason;
+	unsigned short sindex[2*n+1];
 
-	if (r)
-		return r;
+	sjason = jason + index[val];
 
-	e->type = G_PLAYER;
+	i = js0n((const unsigned char*) sjason, index[val+1], sindex, 2*n+1);
+
+	if (i) return i;
+
+	for (i = 0; i < n && sindex[2*i]; ++i)
+		v[i] = j0g2_flt(2*i, sjason, sindex);
+
+	if (i < n) return -1;
+
 	return 0;
 }
+

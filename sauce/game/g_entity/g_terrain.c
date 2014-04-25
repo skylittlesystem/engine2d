@@ -38,3 +38,19 @@
 void g_terrain_frame(struct g_terrain* ter, unsigned long dt)
 {
 }
+
+int g_terrain_from_jason(
+		struct g_terrain* e,
+		char* jason,
+		unsigned short* index
+		)
+{
+	int r;
+	r = g_entity_from_jason((struct g_entity*) e, jason, index);
+
+	if (r)
+		return r;
+
+	e->type = G_TERRAIN;
+	return 0;
+}

@@ -55,5 +55,10 @@ struct g_player
 void g_player_move(struct g_player* e, float d[2]);
 void g_player_look(struct g_player* e, float d[2]);
 void g_player_frame(struct g_player* e, unsigned long dt);
+int g_player_from_jason(
+		struct g_player* e,
+		char* jason,
+		unsigned short* index
+		);
 
 #endif /* HAS_G_PLAYER_H */

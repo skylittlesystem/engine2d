@@ -51,5 +51,10 @@ struct g_entity
 };
 
 void g_entity_frame(struct g_entity* e, unsigned long dt);
+int g_entity_from_jason(
+		struct g_entity* e,
+		char* jason,
+		unsigned short* index
+		);
 
 #endif /* HAS_G_ENTITY_H */

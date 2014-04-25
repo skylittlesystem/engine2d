@@ -33,12 +33,15 @@
  *
  */
 
+#include <stdio.h>
 #include <stdbool.h>
 #include <assert.h>
 #include <string.h>
 #include "g_entity.h"
 #include "g_player.h"
 #include "g_terrain.h"
+
+#include "misc/j0g2.h"
 
 void g_entity_frame(struct g_entity* e, unsigned long dt)
 {
@@ -57,6 +60,24 @@ void g_entity_frame(struct g_entity* e, unsigned long dt)
 	default:
 		assert (false);
 	}
+}
+
+int g_entity_from_jason(
+		struct g_entity* e,
+		char* jason,
+		unsigned short* index
+		)
+{
+	j0g2k_vec(e->p, 2, "p", jason, index);
+	j0g2k_vec(&e->boxxy[0][0], 4, "boxxy", jason, index);
+
+	fprintf(stderr, "p: %G, %G\n", e->p[0], e->p[1]);
+	fprintf(stderr, "boxxy: %G, %G, %G, %G\n",
+			e->boxxy[0][0],
+			e->boxxy[0][1],
+			e->boxxy[1][0],
+			e->boxxy[1][1]);
+	return 0;
 }
 
 void g_entity_init(struct g_entity* e)

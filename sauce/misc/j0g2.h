@@ -25,7 +25,7 @@
  *
  *
  *
- * g_player.c
+ * j0g2.h
  *
  *
  *
@@ -33,36 +33,27 @@
  *
  */
 
-#include <stdio.h>
-#include "g_player.h"
+#ifndef HAS_J0G2_H
+#define HAS_J0G2_H
 
-void g_player_move(struct g_player* e, float d[2])
-{
-	/* TODO */
-}
+#include <stdlib.h>
+#include "j0g.h"
 
-void g_player_look(struct g_player* e, float d[2])
-{
-	/* TODO */
-}
+/* NOTE: maybe use j0g_safe? */
 
-void g_player_frame(struct g_player* e, unsigned long dt)
-{
-	//fprintf(stderr, "=oplayer %d framing!!1!11ONE!\n", e->id);
-}
+#define j0g2_pt(v, j, i) &(j)[i[v]]
+#define j0g2_flt(v, j, i) strtof(j0g2_pt(v, j, i), NULL)
 
-int g_player_from_jason(
-		struct g_player* e,
-		char* jason,
+#define j0g2k_pt(k, j, i) j0g2_pt(j0g_val(k, j, i), j, i)
+#define j0g2k_flt(k, j, i) j0g2_flt(j0g_val(k, j, i), j, i)
+#define j0g2k_vec(x, n, k, j, i) j0g2_vec(x, n, j0g_val(k, j, i), j, i)
+
+int j0g2_vec(
+		float* v,
+		unsigned n,
+		int val,
+		const char* jason,
 		unsigned short* index
-		)
-{
-	int r;
-	r = g_entity_from_jason((struct g_entity*) e, jason, index);
+		);
 
-	if (r)
-		return r;
-
-	e->type = G_PLAYER;
-	return 0;
-}
+#endif /* HAS_J0G2_H */

@@ -47,5 +47,10 @@ struct g_terrain
 };
 
 void g_terrain_frame(struct g_terrain* ter, unsigned long dt);
+int g_terrain_from_jason(
+		struct g_terrain* e,
+		char* jason,
+		unsigned short* index
+		);
 
 #endif /* HAS_G_TERRAIN_H */

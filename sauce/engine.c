@@ -37,6 +37,8 @@
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
+#include <errno.h>
 #include <SDL.h>
 #include "game/game.h"
 #include "ui/ui.h"
@@ -48,6 +50,9 @@
 #include "misc/mmath.h"
 #include "misc/simd.h"
 
+#include "misc/js0n.h"
+#include "misc/j0g2.h"
+
 static struct game teh_game;
 static struct ui teh_ui;
 
@@ -56,11 +61,114 @@ static struct ui teh_ui;
 
 #define M_PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679
 
+#if 0
 struct g_player p1, p2;
 struct g_terrain t1, t2;
+#endif
+
+static char* slurp(const char* path)
+{
+	FILE* fp;
+	char* buf;
+	unsigned size;
+
+	fp = fopen(path, "r");
+
+	if (fp == NULL)
+	{
+		fprintf(stderr, "%s: %s\n", path, strerror(errno));
+		return NULL;
+	}
+
+	/* determine file size */
+	fseek(fp, 0, SEEK_END);
+	size = ftell(fp);
+	rewind(fp);
+	size -= ftell(fp);
+
+	/* slurp */
+	buf = malloc(size+1);
+	fread(buf, 1, size, fp);
+	buf[size] = 0;
+
+	fclose(fp);
+	return buf;
+}
+
+#define readf(i) strtof(j0g_safe(i, jason, ind), NULL)
+#define do_js0n(n) js0n((unsigned char*) jason, len, ind, n)
+
+#define pind(s, n) print_inds(s, ind, n)
+#define pvec2(s, v) fprintf(stderr, "%s: (%G, %G)\n", s, v[0], v[1]);
+
+#define pcontext(s, n) { fprintf(stderr, "=== %s context:\n", s); fwrite(jason, 1, n <= len ? n : len, stderr); fputs("\n=== end_context\n", stderr); }
+
+#define CSZ 100
+
+static struct g_entity* unjason_entity(char* jason, unsigned short* index)
+{
+	char* type;
+
+	type = j0g_str("type", jason, index);
+	if (strcmp(type, "g_terrain") == 0)
+	{
+		struct g_terrain* terr;
+		terr = malloc(sizeof (struct g_terrain));
+		memset(terr, 0, sizeof (struct g_terrain));
+		g_terrain_from_jason(terr, jason, index);
+		return (struct g_entity*) terr;
+	}
+
+	return NULL;
+}
+
+static void* unjason_entities(char* jason, unsigned short* index)
+{
+	unsigned short* i;
+
+	for (i = index; (*i); i += 2)
+	{
+		struct g_entity* e;
+		char* j;
+		unsigned short l;
+
+		j = jason + (*i);
+		l = *(i+1);
+
+		unsigned short idx[l];
+
+		assert (!js0n((unsigned char*) j, l, idx, l));
+		assert (e = unjason_entity(j, idx));
+
+		g_add(&teh_game, e);
+		fputs("QJASDLAISDKASDHASDK\n", stderr);
+	}
+
+	return NULL;
+}
+
+static void asd()
+{
+	char* jason;
+	unsigned len;
+
+	jason = slurp("/home/rogi/spiral.map");
+	len = strlen(jason);
+
+	unsigned short index[len];
+
+	assert (!js0n((unsigned char*) jason, len, index, len));
+	unjason_entities(jason, index);
+
+	free(jason);
+}
+
 
 static void add_entities(struct game* g)
 {
+
+
+#if 0
 	memset(&p1, 0, sizeof (p1));
 	memset(&p2, 0, sizeof (p2));
 	memset(&t1, 0, sizeof (t1));
@@ -92,6 +200,7 @@ static void add_entities(struct game* g)
 	g_add(g, (struct g_entity*) &p2);
 	g_add(g, (struct g_entity*) &t1);
 	g_add(g, (struct g_entity*) &t2);
+#endif
 }
 
 /******************************************************************************/
@@ -189,7 +298,8 @@ int main(int argc, char *argv[])
 	ui_init(&teh_ui, &teh_game);
 
 	/* FIXME: remove this */
-	add_entities(&teh_game);
+	asd();
+	//add_entities(&teh_game);
 
 	t1 = SDL_GetTicks();
 	do {
