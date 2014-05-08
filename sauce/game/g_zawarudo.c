@@ -56,49 +56,59 @@
 
 static inline bool intersect3(
 		float* restrict c1, float* restrict c2,
-		float a1, float a2,
-		float b1, float b2)
+		float* restrict a1, float* restrict a2,
+		float* restrict b1, float* restrict b2)
 {
 	/* don't change to <=, since inf <= inf yields false */
-	assert (!(b1 > b2));
 	assert (!(a1 > a2));
+	assert (!(b1 > b2));
 
 	/* both on left */
-	if (a2 < b1)
+	if ((*a2) < (*b1))
 		return false;
 
 	/* both on right */
-	if (b2 < a1)
+	if ((*b2) < (*a1))
 		return false;
 
-	(*c1) = max(a1, b1);
-	(*c2) = min(a2, b2);
+	(*c1) = max((*a1), (*b1));
+	(*c2) = min((*a2), (*b2));
 	return true;
 }
 
 static inline bool intersect2(
 		float* restrict c1, float* restrict c2,
-		float a1, float a2,
-		float b1, float b2)
+		float* restrict a1, float* restrict a2,
+		float* restrict b1, float* restrict b2)
 {
 	/* don't change to <=, since inf <= inf yields false */
-	assert (!(b1 > b2));
+	assert (!(a1 > a2));
 
 	/* reorder */
-	if (a1 > a2)
-		return intersect2(c1, c2, a2, a1, b1, b2);
+	if ((*b1) > (*b2))
+	{
+		float tmp;
+		tmp = (*b1);
+		(*b1) = (*b2);
+		(*b2) = tmp;
+	}
 
 	return intersect3(c1, c2, a1, a2, b1, b2);
 }
 
 static inline bool intersect(
 		float* restrict c1, float* restrict c2,
-		float a1, float a2,
-		float b1, float b2)
+		float* restrict a1, float* restrict a2,
+		float* restrict b1, float* restrict b2)
 {
 	/* reorder */
-	if (a1 > a2)
-		return intersect2(c1, c2, a2, a1, b1, b2);
+	if ((*a1) > (*a2))
+	{
+		float tmp;
+		tmp = (*a1);
+		(*a1) = (*a2);
+		(*a2) = tmp;
+	}
 
 	return intersect2(c1, c2, a1, a2, b1, b2);
 }
@@ -113,40 +123,6 @@ static inline bool intersect(
  *
  *
  */
-
-static inline void sweep_aabb_slab(
-		float (*restrict t)[2],
-		float* restrict n,
-		float (*restrict a)[2],
-		float (*restrict b)[2],
-		float* restrict v,
-		unsigned k
-		)
-{
-		int i, j;
-
-		if (v[k] == 0)
-		{
-			float c;
-
-			n[k] = 0;
-
-			if (intersect3(&c, &c, a[0][k], a[1][k], b[0][k], b[1][k]))
-				t[0][k] = -INFINITY;
-			else
-				t[0][k] = INFINITY;
-
-			t[1][k] = INFINITY;
-			return;
-		}
-
-		i = v[k] < 0 ? 0 : 1;
-		j = (i + 1) % 2;
-
-		n[k] = - (2 * i - 1);
-		t[0][k] = (b[j][k] - a[i][k]) / v[k];
-		t[1][k] = (b[i][k] - a[j][k]) / v[k];
-}
 
 /*
  * Calculate teh first collision with b on a's path, if any, using axis-aligned
@@ -163,25 +139,30 @@ static bool sweep_aabb(
 {
 	float t_in, t_out, t[2][2];
 
-	v2set(n, 0, 0);
-	sweep_aabb_slab(t, n, a, b, v, 0);
-	sweep_aabb_slab(t, n, a, b, v, 1);
+	v2sub(t[0], b[0], a[1]);
+	v2sub(t[1], b[1], a[0]);
+	/* TODO: can we really expect INFINITY on division by zero? */
+	v2div(t[0], t[0], v);
+	v2div(t[1], t[1], v);
 
-	/* check if collision times intersect */
-	if (!intersect3(&t_in, &t_out, t[0][0], t[1][0], t[0][1], t[1][1]))
+	if (!intersect(&t_in, &t_out, &t[0][0], &t[1][0], &t[0][1], &t[1][1]))
 		return false;
+
+	v2set(n, 1, 1);
 
 	/* horizontal */
 	if (t[0][1] < t_in)
-		n[1] = 0;
+		v2set(n, -copysignf(1, v[0]), 0);
 
 	/* vertical */
 	else if (t[0][0] < t_in)
-		n[0] = 0;
+		v2set(n, 0, -copysignf(1, v[1]));
 
+#define L 0.70710678118654752440084436210485
 	/* teh fucking corner */
 	else
-		v2sprod(n, n, 1.414213562373095048801688724209698078);
+		v2set(n, -copysignf(L, v[0]), -copysignf(L, v[1]));
+#undef L
 
 	(*t_) = t_in;
 	return true;

@@ -61,7 +61,7 @@ static struct ui teh_ui;
 
 #define M_PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679
 
-#if 0
+#if 1
 struct g_player p1, p2;
 struct g_terrain t1, t2;
 #endif
@@ -149,6 +149,7 @@ static void* unjason_entities(char* jason, unsigned short* index)
 
 static void asd()
 {
+#if 0
 	char* jason;
 	unsigned len;
 
@@ -161,12 +162,13 @@ static void asd()
 	unjason_entities(jason, index);
 
 	free(jason);
+#endif
 }
 
 
 static void add_entities(struct game* g)
 {
-#if 0
+#if 1
 	memset(&p1, 0, sizeof (p1));
 	memset(&p2, 0, sizeof (p2));
 	memset(&t1, 0, sizeof (t1));
@@ -195,9 +197,9 @@ static void add_entities(struct game* g)
 	v2set(t2.p, 0, 0);
 
 	g_add_player(g, (struct g_player*) &p1);
-	g_add(g, (struct g_entity*) &p2);
+	//g_add(g, (struct g_entity*) &p2);
 	g_add(g, (struct g_entity*) &t1);
-	g_add(g, (struct g_entity*) &t2);
+	//g_add(g, (struct g_entity*) &t2);
 #endif
 }
 
@@ -299,7 +301,7 @@ int main(int argc, char *argv[])
 
 	/* FIXME: remove this */
 	asd();
-	//add_entities(&teh_game);
+	add_entities(&teh_game);
 
 	t1 = SDL_GetTicks();
 	do {
