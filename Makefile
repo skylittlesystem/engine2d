@@ -5,7 +5,7 @@
 CC := gcc
 LD := gcc
 CFLAGS := -std=c99 -Wall -pipe -ggdb -DOPENGL_ES
-LDFLAGS := 
+LDFLAGS := -lm
 
 SDL2_CFLAGS := `sdl2-config --cflags`
 SDL2_LIBS := `sdl2-config --libs` -lGLESv2
