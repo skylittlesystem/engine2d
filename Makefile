@@ -78,13 +78,15 @@ ALL_PRG := $(ENGINE_PRG)
 #
 
 build/%.o: sauce/%.c
+	mkdir -p `dirname $@`
 	$(CC) -o $@ -c $<
 
 build/%.glsl.c: sauce/%.glsl
+	mkdir -p `dirname $@`
 	xxd -i < $< > $@
 
 $(ENGINE_PRG): $(ENGINE_OBJ)
-	echo $(ENGINE_OBJ)
+	mkdir -p `dirname $@`
 	$(LD) -o $@ $^
 
 .PHONY: all clean
@@ -104,6 +106,7 @@ build/renderer/renderer.o: $(R_SHADERS)
 #
 
 build/%test: sauce/%test.c
+	mkdir -p `dirname $@`
 	$(LD) -o $@ $^
 	$@
 	rm -f $@
