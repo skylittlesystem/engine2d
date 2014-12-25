@@ -36,19 +36,23 @@
 #include <stdio.h>
 #include "g_player.h"
 
-void g_player_move(struct g_player* e, float d[2])
-{
-	/* TODO */
-}
+#include "misc/simd.h"
 
-void g_player_look(struct g_player* e, float d[2])
+void g_player_walk(struct g_player* e, float v[2])
 {
-	/* TODO */
+	/* limit walk velocity */
+	if (v2len(v) > 1)
+		v2sprod(v, v, 1.0/v2len(v));
+
+	v2cpy(e->walk_v, v);
 }
 
 void g_player_frame(struct g_player* e, unsigned long dt)
 {
-	//fprintf(stderr, "=oplayer %d framing!!1!11ONE!\n", e->id);
+	if (v2len(e->walk_v) == 0)
+		e->walk_dt = 0;
+	else
+		e->walk_dt += dt;
 }
 
 int g_player_from_jason(

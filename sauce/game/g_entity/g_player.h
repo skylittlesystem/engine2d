@@ -45,15 +45,14 @@ struct g_player
 {
 #define G_PLAYER_FIELDS \
 	G_ENTITY_FIELDS \
-	unsigned long walk_t;		/* when walking started */ \
+	unsigned long walk_dt;		/* for how long have we walked */ \
 	float walk_v[2];		/* walk velocity */ \
 	struct llist inventory;		/* list of player's items */ \
 
 	G_PLAYER_FIELDS
 };
 
-void g_player_move(struct g_player* e, float d[2]);
-void g_player_look(struct g_player* e, float d[2]);
+void g_player_walk(struct g_player* e, float v[2]);
 void g_player_frame(struct g_player* e, unsigned long dt);
 int g_player_from_jason(
 		struct g_player* e,
