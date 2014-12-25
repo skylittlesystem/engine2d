@@ -43,7 +43,145 @@
 
 #include "misc/j0g2.h"
 
-void g_entity_frame(struct g_entity* e, unsigned long dt)
+#include "misc/mmath.h"
+#include "misc/simd.h"
+
+/*
+ * collision
+ *
+ */
+
+/* 1d intersection, a and b sorted */
+static inline bool intersect3(
+		float* restrict c1, float* restrict c2,
+		float* restrict a1, float* restrict a2,
+		float* restrict b1, float* restrict b2)
+{
+	/* don't change to <=, since inf <= inf yields false */
+	assert (!(a1 > a2));
+	assert (!(b1 > b2));
+
+	/* both on left */
+	if ((*a2) <= (*b1))
+		return false;
+
+	/* both on right */
+	if ((*b2) <= (*a1))
+		return false;
+
+	(*c1) = max((*a1), (*b1));
+	(*c2) = min((*a2), (*b2));
+	return true;
+}
+
+/* 1d intersection, a sorted */
+static inline bool intersect2(
+		float* restrict c1, float* restrict c2,
+		float* restrict a1, float* restrict a2,
+		float* restrict b1, float* restrict b2)
+{
+	/* don't change to <=, since inf <= inf yields false */
+	assert (!(a1 > a2));
+
+	/* reorder */
+	if ((*b1) > (*b2))
+	{
+		float tmp;
+		tmp = (*b1);
+		(*b1) = (*b2);
+		(*b2) = tmp;
+	}
+
+	return intersect3(c1, c2, a1, a2, b1, b2);
+}
+
+/* 1d intersection */
+static inline bool intersect(
+		float* restrict c1, float* restrict c2,
+		float* restrict a1, float* restrict a2,
+		float* restrict b1, float* restrict b2)
+{
+	/* reorder */
+	if ((*a1) > (*a2))
+	{
+		float tmp;
+		tmp = (*a1);
+		(*a1) = (*a2);
+		(*a2) = tmp;
+	}
+
+	return intersect2(c1, c2, a1, a2, b1, b2);
+}
+
+/* collide aabb with raytracing */
+static bool sweep_aabb(
+		float* restrict t_,		/* collision time */
+		float* restrict n,		/* collision normal */
+		float (*restrict a)[2],		/* a's AABB */
+		float (*restrict b)[2],		/* b's AABB */
+		float* restrict v		/* a's velocity */
+		)
+{
+	float t_in, t_out, t[2][2];
+
+	v2sub(t[0], b[0], a[1]);
+	v2sub(t[1], b[1], a[0]);
+	/* TODO: can we really expect INFINITY on division by zero? */
+	v2div(t[0], t[0], v);
+	v2div(t[1], t[1], v);
+
+	if (!intersect(&t_in, &t_out, &t[0][0], &t[1][0], &t[0][1], &t[1][1]))
+		return false;
+
+	v2set(n, 1, 1);
+
+	/* horizontal */
+	if (t[0][1] < t_in)
+		v2set(n, -copysignf(1, v[0]), 0);
+
+	/* vertical */
+	else if (t[0][0] < t_in)
+		v2set(n, 0, -copysignf(1, v[1]));
+
+#define L 0.70710678118654752440084436210485
+	/* teh fucking corner */
+	else
+		v2set(n, -copysignf(L, v[0]), -copysignf(L, v[1]));
+#undef L
+
+	(*t_) = t_in;
+	return true;
+}
+
+/*
+ * collision solver
+ *
+ */
+bool g_entity_collide(
+		float* restrict t,		/* collision time */
+		float* restrict n,		/* collision normal */
+		struct g_entity* e1,		/* entity 1 */
+		struct g_entity* e2		/* entity 2 */
+		)
+{
+	float a[2][2], b[2][2], v[2];
+
+	v2add(a[0], e1->p, e1->boxxy[0]);
+	v2add(a[1], a[0], e1->boxxy[1]);
+	v2add(b[0], e2->p, e2->boxxy[0]);
+	v2add(b[1], b[0], e2->boxxy[1]);
+
+	v2cpy(v, e1->v);
+	v2sub(v, v, e2->v);
+
+	return sweep_aabb(t, n, a, b, v);
+}
+
+/*
+ * frame
+ *
+ */
+void g_entity_frame(struct g_entity* e, struct g_zawarudo* z, unsigned long dt)
 {
 	switch (e->type)
 	{

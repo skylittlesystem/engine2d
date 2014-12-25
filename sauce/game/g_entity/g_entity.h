@@ -36,6 +36,7 @@
 #ifndef HAS_G_ENTITY_H
 #define HAS_G_ENTITY_H
 
+#include <stdbool.h>
 #include "../g_names.h"
 
 struct g_entity
@@ -50,7 +51,18 @@ struct g_entity
 	G_ENTITY_FIELDS
 };
 
-void g_entity_frame(struct g_entity* e, unsigned long dt);
+/* must come after g_entity definition! */
+#include "../g_zawarudo.h"
+
+bool g_entity_collide(
+		float* restrict t,		/* collision time */
+		float* restrict n,		/* collision normal */
+		struct g_entity* e1,		/* entity 1 */
+		struct g_entity* e2		/* entity 2 */
+		);
+
+void g_entity_frame(struct g_entity* e, struct g_zawarudo* z, unsigned long dt);
+
 int g_entity_from_jason(
 		struct g_entity* e,
 		char* jason,

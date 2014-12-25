@@ -162,8 +162,6 @@ void ui_game_draw(struct ui_game* ui_g)
 void ui_game_frame(struct ui_game* ui_g, unsigned long dt)
 {
 	/* make player walk */
-	float* v;
-
 	if (ui_g->g->player)
 	{
 		float v[2];

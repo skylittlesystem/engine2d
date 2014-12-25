@@ -66,6 +66,7 @@ struct g_player p1, p2;
 struct g_terrain t1, t2;
 #endif
 
+#if 0
 static char* slurp(const char* path)
 {
 	FILE* fp;
@@ -146,6 +147,7 @@ static void* unjason_entities(char* jason, unsigned short* index)
 
 	return NULL;
 }
+#endif
 
 static void asd()
 {

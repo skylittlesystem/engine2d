@@ -33,10 +33,12 @@
  *
  */
 
+/* g_entity always should be included before this file! */
+#include "g_entity/g_entity.h"
+
 #ifndef HAS_G_ZAWARUDO_H
 #define HAS_G_ZAWARUDO_H
 
-#include "g_entity/g_entity.h"
 #include "misc/list.h"
 
 /* WRYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY!!!1!!11ONE! */
